@@ -1,0 +1,17 @@
+{
+  "name": "troon",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "build": "npm run build --workspace=frontend && npm run build --workspace=backend"
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4"
+  }
+}
