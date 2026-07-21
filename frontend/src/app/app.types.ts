@@ -14,6 +14,10 @@ export interface AppViewProps {
   onQuickUpdateClose(): void;
   onFundsChange(funds: Fund[]): void;
   onIndicesChange(indices: Index[]): void;
+  onSaveIndex(index: Index): void;
+  onRemoveIndex(id: string): void;
+  onAddIndustry(): void;
+  onEditIndustry(fund: Fund): void;
   onComparisonChange(comparison: Comparison): void;
   onCorrelationsChange(correlations: Record<string, number>): void;
 }

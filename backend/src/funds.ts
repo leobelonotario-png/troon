@@ -3,6 +3,7 @@ import {
   AssetClass,
   Domicile,
   FundStatus,
+  FundOrigin,
   FundType,
   Prisma,
   PrismaClient,
@@ -34,6 +35,16 @@ export const fundInputSchema = z.object({
   annualizedReturnSinceInception: nullableNumber,
   annualizedVolatilitySinceInception: nullableNumber,
   validated: z.boolean().nullable().optional(),
+  origin: z.nativeEnum(FundOrigin).optional(),
+  benchmark: z.string().nullable().optional(),
+  liquidity: z.string().nullable().optional(),
+  taxation: z.string().nullable().optional(),
+  data: z.string().nullable().optional(),
+  recommended: z.boolean().optional(),
+  quantitativeRating: nullableNumber,
+  finalRating: nullableNumber,
+  notes: z.string().nullable().optional(),
+  color: z.string().nullable().optional(),
 }).strict();
 
 export type FundInput = z.infer<typeof fundInputSchema>;

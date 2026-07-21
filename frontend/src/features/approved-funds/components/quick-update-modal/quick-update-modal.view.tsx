@@ -21,6 +21,19 @@ export function QuickUpdateModalView(props: QuickUpdateViewProps) {
         </Button>
         {props.feedback && <small role="status">{props.feedback}</small>}
       </Field>
+      <Field label="Importar CSV: CNPJ ou Nome | Retorno | Vol">
+        <Input
+          type="file"
+          accept=".csv,text/csv"
+          onChange={(event) => props.onCsvChange(event.target.files?.[0] ?? null)}
+        />
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={props.onImportCsv} disabled={props.isCsvSubmitting}>
+            {props.isCsvSubmitting ? 'Validando e importando...' : 'Validar e importar CSV'}
+          </Button>
+          {props.csvFileName && <small>{props.csvFileName}</small>}
+        </div>
+      </Field>
       <table className="w-full border-collapse text-sm [&_td]:border-b [&_td]:border-border [&_td]:p-2 [&_th]:border-b [&_th]:border-border [&_th]:p-2 [&_th]:text-left">
         <thead>
           <tr>

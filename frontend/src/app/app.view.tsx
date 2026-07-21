@@ -3,8 +3,6 @@ import { QuickUpdateModal } from '../features/approved-funds/components/quick-up
 import { ComparisonUniverse } from '../features/comparison-universe';
 import { FundComparator } from '../features/fund-comparator';
 import { Button } from '../shared/components/ui';
-import type { Fund } from '../shared/domain/fund.types';
-import type { Index } from '../shared/domain/index.types';
 import type { AppTab, AppViewProps } from './app.types';
 const tabs: Array<{ id: AppTab; label: string }> = [
   { id: 'liquido', label: 'Fundos Líquidos' },
@@ -14,48 +12,6 @@ const tabs: Array<{ id: AppTab; label: string }> = [
   { id: 'comparador', label: 'Comparador' },
 ];
 export function AppView(props: AppViewProps) {
-  const saveIndex = (index: Index) =>
-    props.onIndicesChange(
-      props.indices.some((item) => item.id === index.id)
-        ? props.indices.map((item) => (item.id === index.id ? index : item))
-        : [...props.indices, index],
-    );
-  const addIndustry = () => {
-    const name = window.prompt('Nome do fundo da indústria');
-    if (!name?.trim()) return;
-    const fund: Fund = {
-      id: `industry-${crypto.randomUUID()}`,
-      origin: 'industria',
-      name: name.trim(),
-      cnpj: '',
-      shore: 'Onshore',
-      type: 'liquido',
-      status: 'Aberto',
-      classe: '',
-      sub: '',
-      bench: '',
-      liq: '',
-      trib: '',
-      gestora: '',
-      data: '',
-      prev: false,
-      notaQuant: null,
-      notaFinal: null,
-      ret: null,
-      vol: null,
-      updatedAt: null,
-      obs: '',
-      color: '#b7bec2',
-    };
-    props.onFundsChange([...props.funds, fund]);
-  };
-  const editIndustry = (fund: Fund) => {
-    const name = window.prompt('Nome do fundo da indústria', fund.name);
-    if (name?.trim())
-      props.onFundsChange(
-        props.funds.map((item) => (item.id === fund.id ? { ...item, name: name.trim() } : item)),
-      );
-  };
   return (
     <div className="min-h-screen">
       <header className="flex items-center justify-between gap-4 bg-primary px-[max(1.5rem,calc((100vw-80rem)/2))] py-[1.125rem] text-primary-foreground">
@@ -79,6 +35,7 @@ export function AppView(props: AppViewProps) {
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            type="button"
             className={`whitespace-nowrap border-0 border-b-[3px] bg-transparent px-[1.125rem] py-4 ${props.activeTab === tab.id ? 'border-primary font-bold text-primary' : 'border-transparent text-muted-foreground'}`}
             onClick={() => props.onTabChange(tab.id)}
           >
@@ -95,12 +52,10 @@ export function AppView(props: AppViewProps) {
           <ComparisonUniverse
             indices={props.indices}
             industryFunds={props.funds.filter((fund) => fund.origin === 'industria')}
-            onSaveIndex={saveIndex}
-            onRemoveIndex={(id) =>
-              props.onIndicesChange(props.indices.filter((index) => index.id !== id))
-            }
-            onAddIndustryFund={addIndustry}
-            onEditIndustryFund={editIndustry}
+            onSaveIndex={props.onSaveIndex}
+            onRemoveIndex={props.onRemoveIndex}
+            onAddIndustryFund={props.onAddIndustry}
+            onEditIndustryFund={props.onEditIndustry}
           />
         ) : (
           <FundComparator
