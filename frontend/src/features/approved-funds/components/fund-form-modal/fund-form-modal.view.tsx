@@ -20,7 +20,7 @@ export function FundFormModalView(props: FundFormViewProps) {
     );
   return (
     <Modal title={props.isEditing ? 'Editar fundo' : 'Adicionar fundo'} onClose={props.onClose}>
-      <div className="form-grid">
+      <div className="grid gap-4 md:grid-cols-2">
         <Field label="Nome do fundo *" error={props.errors.name}>
           <Input value={value('name')} onChange={(e) => change('name', e.target.value)} />
         </Field>
@@ -79,7 +79,7 @@ export function FundFormModalView(props: FundFormViewProps) {
             onChange={(e) => change('data', e.target.value)}
           />
         </Field>
-        <label className="checkbox">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <input
             type="checkbox"
             checked={props.draft.prev}
@@ -119,13 +119,13 @@ export function FundFormModalView(props: FundFormViewProps) {
           <textarea value={value('obs')} onChange={(e) => change('obs', e.target.value)} />
         </Field>
       </div>
-      <div className="modal-actions">
+      <div className="mt-5 flex items-center justify-between gap-3">
         {props.isEditing && (
           <Button variant="danger" onClick={props.onDelete}>
             Excluir fundo
           </Button>
         )}
-        <div className="right">
+        <div className="flex gap-2">
           <Button variant="secondary" onClick={props.onClose}>
             Cancelar
           </Button>

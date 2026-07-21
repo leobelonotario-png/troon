@@ -14,23 +14,23 @@ function FundCard({
 }) {
   return (
     <button
-      className="fund-card"
+      className="flex gap-2.5 rounded-md border border-border border-l-[5px] bg-card p-2.5 text-left shadow-sm transition-shadow hover:shadow-md"
       style={{ borderLeftColor: fund.color }}
       onClick={() => onEdit(fund)}
     >
-      <b className="rank">{rank ? `${rank}º` : '–'}</b>
+      <b className="text-lg leading-none text-primary">{rank ? `${rank}º` : '–'}</b>
       <span>
-        <span className="fund-name">
+        <span className="flex justify-between gap-2 text-sm font-bold">
           {fund.name}
-          <small className="score">
+          <small className="font-normal text-muted-foreground">
             Q {fund.notaQuant?.toFixed(1) ?? '–'} · F {fund.notaFinal?.toFixed(1) ?? '–'}
           </small>
         </span>
-        <span className="fund-meta">
+        <span className="mt-1.5 block text-xs text-muted-foreground">
           Ret {fund.ret?.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) ?? '–'}% · Vol{' '}
           {fund.vol?.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) ?? '–'}%{' '}
-          {fund.shore === 'Offshore' && <em className="tag">Offshore</em>}
-          {fund.status === 'Fechado' && <em className="tag closed">Fechado</em>}
+          {fund.shore === 'Offshore' && <em className="ml-1 rounded bg-secondary px-1.5 py-0.5 not-italic text-secondary-foreground">Offshore</em>}
+          {fund.status === 'Fechado' && <em className="ml-1 rounded bg-destructive/15 px-1.5 py-0.5 not-italic text-destructive">Fechado</em>}
         </span>
       </span>
     </button>
@@ -58,7 +58,7 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
   return (
     <>
       <section>
-        <div className="page-head">
+        <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1>{props.title}</h1>
             <p>Monitoramento de fundos aprovados e suas métricas.</p>
@@ -66,10 +66,10 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
           <Button onClick={props.onAdd}>+ Adicionar fundo</Button>
         </div>
         {props.type === 'liquido' && (
-          <div className="segmented" aria-label="Visão de fundos líquidos">
+          <div className="mb-4 inline-flex rounded-md border border-border bg-card p-1" aria-label="Visão de fundos líquidos">
             {(['onshore', 'offshore', 'prev'] as const).map((view) => (
               <button
-                className={props.liquidView === view ? 'active' : ''}
+                className={`rounded px-3 py-1.5 text-sm ${props.liquidView === view ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
                 onClick={() => props.onLiquidViewChange(view)}
                 key={view}
               >
@@ -78,7 +78,7 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
             ))}
           </div>
         )}
-        <div className="filters">
+        <div className="mb-6 grid gap-2 md:grid-cols-3 xl:grid-cols-6">
           <Input
             aria-label="Buscar fundo"
             placeholder="Buscar por nome, CNPJ ou gestora"
@@ -128,16 +128,16 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
         </div>
         {grouped.length ? (
           grouped.map((group) => (
-            <section className="class-section" key={group.c}>
+            <section className="mb-8" key={group.c}>
               <h2>{group.c}</h2>
               {group.groups.map(({ sub, funds }) => {
                 const ranked = [...funds]
                   .filter((fund) => fund.notaQuant !== null)
                   .sort((a, b) => (b.notaQuant ?? 0) - (a.notaQuant ?? 0));
                 return (
-                  <div className="subsection" key={sub}>
+                  <div className="mb-5" key={sub}>
                     <h3>{sub}</h3>
-                    <div className="fund-list">
+                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
                       {funds.map((fund) => (
                         <FundCard
                           key={fund.id}

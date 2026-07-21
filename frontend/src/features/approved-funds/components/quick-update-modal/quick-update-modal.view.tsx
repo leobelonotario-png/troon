@@ -12,7 +12,7 @@ export function QuickUpdateModalView(props: QuickUpdateViewProps) {
       </Field>
       <Field label="Colar do Excel: CNPJ ou Nome | Retorno | Vol">
         <textarea
-          className="paste"
+          className="min-h-28 w-full rounded-md border border-input bg-card p-2 text-sm"
           value={props.paste}
           onChange={(event) => props.onPasteChange(event.target.value)}
         />
@@ -21,7 +21,7 @@ export function QuickUpdateModalView(props: QuickUpdateViewProps) {
         </Button>
         {props.feedback && <small role="status">{props.feedback}</small>}
       </Field>
-      <table className="update-grid">
+      <table className="w-full border-collapse text-sm [&_td]:border-b [&_td]:border-border [&_td]:p-2 [&_th]:border-b [&_th]:border-border [&_th]:p-2 [&_th]:text-left">
         <thead>
           <tr>
             <th>Fundo</th>
@@ -51,8 +51,8 @@ export function QuickUpdateModalView(props: QuickUpdateViewProps) {
           ))}
         </tbody>
       </table>
-      <div className="modal-actions">
-        <div className="right">
+      <div className="mt-5 flex justify-end">
+        <div className="flex gap-2">
           <Button variant="secondary" onClick={props.onClose}>
             Cancelar
           </Button>

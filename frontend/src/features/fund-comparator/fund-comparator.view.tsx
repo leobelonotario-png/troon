@@ -15,23 +15,23 @@ const Group = ({
   selected: string[];
   onToggle: (id: string, checked: boolean) => void;
 }) => (
-  <section className="selection-group">
+  <section className="mt-4 border-t border-border pt-4">
     <h4>{title}</h4>
     {entities.length ? (
       entities.map((entity) => (
-        <label key={entity.id} className="selection-item">
+        <label key={entity.id} className="flex items-center gap-2 py-1 text-sm">
           <input
             type="checkbox"
             checked={selected.includes(entity.id)}
             onChange={(event) => onToggle(entity.id, event.target.checked)}
           />
-          <i className="entity-dot" style={{ backgroundColor: entity.color }} />{' '}
+          <i className="size-2.5 rounded-full" style={{ backgroundColor: entity.color }} />{' '}
           <span>{entity.name}</span>
           {'sub' in entity && <small>{entity.sub}</small>}
         </label>
       ))
     ) : (
-      <p className="empty-state">Nenhuma opção disponível.</p>
+      <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Nenhuma opção disponível.</p>
     )}
   </section>
 );
@@ -46,13 +46,13 @@ export function FundComparatorView(props: FundComparatorViewProps) {
   const selectedIndustry =
     industry.length > 0 && industry.every((item) => selected.includes(item.id));
   return (
-    <section className="fund-comparator" aria-labelledby="comparator-title">
-      <header className="feature-heading">
+    <section aria-labelledby="comparator-title">
+      <header className="mb-5">
         <h2 id="comparator-title">Comparador de Fundos</h2>
       </header>
-      <div className="comparator-grid">
+      <div className="grid gap-5 xl:grid-cols-[minmax(20rem,0.85fr)_minmax(0,1.5fr)]">
         <aside>
-          <section className="surface">
+          <section className="mb-4 rounded-lg border border-border bg-card p-4 shadow-sm">
             <h3>Fundo de referência</h3>
             <label>
               Fundo
@@ -90,9 +90,9 @@ export function FundComparatorView(props: FundComparatorViewProps) {
               />
             </label>
           </section>
-          <section className="surface">
+          <section className="mb-4 rounded-lg border border-border bg-card p-4 shadow-sm">
             <h3>Quem entra na comparação</h3>
-            <div className="filter-grid">
+            <div className="grid gap-3 sm:grid-cols-3">
               <label>
                 Aba
                 <select value={props.filters.type} onChange={onFilter('type')}>
@@ -129,15 +129,15 @@ export function FundComparatorView(props: FundComparatorViewProps) {
                 </select>
               </label>
             </div>
-            <div className="selection-actions">
+            <div className="mt-3 flex gap-2">
               <button
-                className="button button-secondary button-small"
+                className="rounded border border-border bg-secondary px-3 py-1.5 text-sm text-secondary-foreground"
                 onClick={() => props.onToggleFiltered(true)}
               >
                 Selecionar filtrados
               </button>
               <button
-                className="button button-secondary button-small"
+                className="rounded border border-border bg-secondary px-3 py-1.5 text-sm text-secondary-foreground"
                 onClick={() => props.onToggleFiltered(false)}
               >
                 Limpar filtrados
@@ -155,11 +155,11 @@ export function FundComparatorView(props: FundComparatorViewProps) {
               selected={selected}
               onToggle={props.onToggleParticipant}
             />
-            <div className="selection-group">
-              <div className="group-title">
+            <div className="mt-4 border-t border-border pt-4">
+              <div className="flex items-center justify-between gap-2">
                 <h4>Fundos da indústria</h4>
                 <button
-                  className="button button-secondary button-small"
+                  className="rounded border border-border bg-secondary px-3 py-1.5 text-sm text-secondary-foreground"
                   onClick={() => props.onToggleIndustry(!selectedIndustry)}
                 >
                   {selectedIndustry ? 'Desmarcar todos' : 'Selecionar todos'}
@@ -173,15 +173,15 @@ export function FundComparatorView(props: FundComparatorViewProps) {
               />
             </div>
           </section>
-          <section className="surface">
+          <section className="mb-4 rounded-lg border border-border bg-card p-4 shadow-sm">
             <h3>Correlações — ref. × cada um</h3>
             {props.reference ? (
               props.selectedEntities.length ? (
-                <div className="correlation-inputs">
+                <div className="grid gap-2">
                   {props.selectedEntities.map((entity) => (
                     <label key={entity.id}>
                       <span>
-                        <i className="entity-dot" style={{ backgroundColor: entity.color }} />
+                        <i className="mr-1 inline-block size-2.5 rounded-full" style={{ backgroundColor: entity.color }} />
                         {entity.name}
                       </span>
                       <input
@@ -197,33 +197,33 @@ export function FundComparatorView(props: FundComparatorViewProps) {
                   ))}
                 </div>
               ) : (
-                <p className="empty-state">Nenhum participante selecionado.</p>
+                <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Nenhum participante selecionado.</p>
               )
             ) : (
-              <p className="empty-state">Selecione um fundo de referência.</p>
+              <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Selecione um fundo de referência.</p>
             )}
           </section>
         </aside>
-        <main className="charts">
-          <section className="surface">
+        <main className="grid gap-4">
+          <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
             <h3>
               Risco × Retorno (%){' '}
               {props.comparison.periodo && <small>{props.comparison.periodo}</small>}
             </h3>
             <RiskReturnChart reference={props.reference} participants={props.selectedEntities} />
-            <p className="chart-description">
+            <p className="mt-3 text-sm text-muted-foreground">
               O gráfico exibe volatilidade anualizada no eixo horizontal e retorno anualizado no
               vertical.
             </p>
           </section>
-          <section className="surface">
+          <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
             <h3>Correlação — média para janelas de 3M</h3>
             <CorrelationChart
               reference={props.reference}
               participants={props.selectedEntities}
               correlations={props.correlations}
             />
-            <p className="chart-description">
+            <p className="mt-3 text-sm text-muted-foreground">
               As barras representam correlações informadas, de −1 (inversa) a 1 (direta).
             </p>
           </section>

@@ -8,7 +8,7 @@ interface Props {
 export function CorrelationChart({ reference, participants, correlations }: Props) {
   if (!reference)
     return (
-      <p className="empty-state">
+      <p className="rounded-lg border border-dashed border-border p-7 text-center text-sm text-muted-foreground">
         Selecione um fundo de referência para visualizar as correlações.
       </p>
     );
@@ -18,25 +18,25 @@ export function CorrelationChart({ reference, participants, correlations }: Prop
       (row): row is { entity: ComparisonEntity; value: number } => typeof row.value === 'number',
     );
   if (!rows.length)
-    return <p className="empty-state">Informe as correlações para visualizar o gráfico.</p>;
+    return <p className="rounded-lg border border-dashed border-border p-7 text-center text-sm text-muted-foreground">Informe as correlações para visualizar o gráfico.</p>;
   return (
     <div
-      className="correlation-chart"
+      className="grid gap-3"
       role="img"
       aria-label={`Correlação de ${reference.name} com os participantes`}
     >
-      <div className="correlation-axis">
+      <div className="grid grid-cols-[minmax(7rem,1fr)_minmax(12rem,2fr)_3rem] text-xs text-muted-foreground">
         <span>−1</span>
         <span>0</span>
         <span>1</span>
       </div>
       {rows.map(({ entity, value }) => (
-        <div className="correlation-row" key={entity.id}>
+        <div className="grid grid-cols-[minmax(7rem,1fr)_minmax(12rem,2fr)_3rem] items-center gap-2" key={entity.id}>
           <span>{entity.name}</span>
-          <div className="correlation-track">
-            <i className="zero-line" />
+          <div className="relative h-5 rounded bg-muted">
+            <i className="absolute left-1/2 top-0 h-full border-l border-foreground/30" />
             <i
-              className="correlation-bar"
+              className="absolute top-1/2 h-2 -translate-y-1/2 rounded"
               style={{
                 left: `${value < 0 ? (value + 1) * 50 : 50}%`,
                 width: `${Math.abs(value) * 50}%`,

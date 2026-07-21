@@ -14,7 +14,7 @@ export function RiskReturnChart({ reference, participants }: Props) {
     .filter(hasMetrics);
   if (!entities.length)
     return (
-      <p className="empty-state">
+      <p className="rounded-lg border border-dashed border-border p-7 text-center text-sm text-muted-foreground">
         Selecione uma referência ou participante com retorno e volatilidade preenchidos.
       </p>
     );
@@ -36,7 +36,7 @@ export function RiskReturnChart({ reference, participants }: Props) {
   );
   return (
     <svg
-      className="risk-chart"
+      className="h-auto w-full rounded border border-border bg-card"
       viewBox={`0 0 ${width} ${height}`}
       role="img"
       aria-label="Gráfico de risco versus retorno"
