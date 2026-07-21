@@ -12,6 +12,11 @@ enum Domicile {
   OFFSHORE
 }
 
+enum FundOrigin {
+  APPROVED
+  INDUSTRY
+}
+
 enum FundType {
   LIQUID
   ILLIQUID
@@ -94,6 +99,7 @@ model Fund {
   id                                      String      @id @default(cuid())
   classCode                               String      @unique
   name                                    String
+  origin                                  FundOrigin  @default(APPROVED)
   fundRegistrationNumber                  String?
   managerName                             String?
   managerRegistrationNumber               String?
@@ -112,6 +118,15 @@ model Fund {
   annualizedVolatilitySinceInception      Float?
   validated                               Boolean?
   lastImportedAt                          DateTime?
+  benchmark                               String?
+  liquidity                               String?
+  taxation                                String?
+  data                                    String?
+  recommended                             Boolean     @default(false)
+  quantitativeRating                      Float?
+  finalRating                             Float?
+  notes                                   String?
+  color                                   String?
   createdAt                               DateTime    @default(now())
   updatedAt                               DateTime    @updatedAt
 
@@ -119,6 +134,27 @@ model Fund {
   @@index([fundType, assetClass, subtype])
   @@index([fundRegistrationNumber])
   @@index([name])
+}
+
+model Index {
+  id        String   @id @default(cuid())
+  name      String
+  ret       Float?
+  vol       Float?
+  updatedAt DateTime @updatedAt
+  color     String?
+  dashed    Boolean  @default(false)
+}
+
+model Comparison {
+  id          String   @id @default("default")
+  refId       String?
+  selected    Json
+  title       String
+  source      String
+  period      String
+  correlations Json
+  updatedAt   DateTime @updatedAt
 }
 
 model User {

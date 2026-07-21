@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { fundsRepository } from '../../shared/repositories/in-memory.repositories';
+import { useQuery } from '@tanstack/react-query';
+import { listFunds } from '../../shared/repositories/api.repositories';
 import type { Fund, FundType } from '../../shared/domain/fund.types';
 import type { ApprovedFundsViewProps, FundFilters } from './approved-funds.types';
 const labels: Record<FundType, string> = {
@@ -9,14 +10,14 @@ const labels: Record<FundType, string> = {
 };
 const blank: FundFilters = { q: '', classe: '', sub: '', liq: '', trib: '' };
 export function useApprovedFundsModel(type: FundType): ApprovedFundsViewProps {
-  const [version, setVersion] = useState(0);
   const [filters, setFilters] = useState(blank);
   const [liquidView, setLiquidView] = useState<'onshore' | 'offshore' | 'prev'>('onshore');
   const [editingFund, setEditingFund] = useState<Fund | null>(null);
   const [isFormOpen, setFormOpen] = useState(false);
+  const fundsQuery = useQuery({ queryKey: ['funds'], queryFn: listFunds });
   const funds = useMemo(
     () =>
-      fundsRepository.list().filter((fund) => {
+      (fundsQuery.data ?? []).filter((fund) => {
         if (fund.origin !== 'aprovado' || fund.type !== type) return false;
         if (
           type === 'liquido' &&
@@ -36,7 +37,7 @@ export function useApprovedFundsModel(type: FundType): ApprovedFundsViewProps {
           (!filters.trib || fund.trib === filters.trib)
         );
       }),
-    [type, filters, liquidView, version],
+    [type, filters, liquidView, fundsQuery.data],
   );
   return {
     type,
@@ -57,9 +58,6 @@ export function useApprovedFundsModel(type: FundType): ApprovedFundsViewProps {
       setFormOpen(true);
     },
     onCloseForm: () => setFormOpen(false),
-    onSaved: () => {
-      setFormOpen(false);
-      setVersion((value) => value + 1);
-    },
+    onSaved: () => setFormOpen(false),
   };
 }
