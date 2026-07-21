@@ -1,5 +1,4 @@
 import { Button, Field, Input, Modal, Select } from '../../../../shared/components/ui';
-import { taxonomy } from '../../../../shared/fixtures/funds.fixture';
 import type { FundDraft } from '../../../../shared/domain/fund.types';
 import type { FundFormViewProps } from './fund-form-modal.types';
 
@@ -18,8 +17,60 @@ export function FundFormModalView(props: FundFormViewProps) {
           : Number(raw.replace(',', '.'))
         : raw,
     );
+  if (props.isSelectingFund) {
+    const search = props.search;
+    return (
+      <Modal title="Adicionar fundo" onClose={props.onClose}>
+        <p className="mb-4 text-sm text-muted-foreground">Busque pelo nome ou CNPJ do fundo para iniciar o cadastro.</p>
+        <div className="flex gap-2">
+          <Input
+            aria-label="Nome ou CNPJ do fundo"
+            placeholder="Nome ou CNPJ"
+            value={search.query}
+            onChange={(event) => search.onQueryChange(event.target.value)}
+            onKeyDown={(event) => { if (event.key === 'Enter') search.onSearch(); }}
+          />
+          <Button onClick={search.onSearch} disabled={!search.query.trim() || search.isLoading}>
+            {search.isLoading ? 'Buscando...' : 'Buscar'}
+          </Button>
+        </div>
+        {search.error && <p className="mt-3 text-sm text-destructive">{search.error}</p>}
+        {search.results.length > 0 && (
+          <div className="mt-4 space-y-2" role="radiogroup" aria-label="Fundos encontrados">
+            {search.results.map((fund) => (
+              <label
+                className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 ${search.selectedId === fund.id ? 'border-primary bg-primary/5' : 'border-border'}`}
+                key={fund.id}
+              >
+                <input type="radio" name="fund" checked={search.selectedId === fund.id} onChange={() => search.onSelect(fund.id)} />
+                <span>
+                  <b className="block text-sm">{fund.name}</b>
+                  <span className="text-xs text-muted-foreground">{fund.cnpj || 'CNPJ não informado'}{fund.gestora ? ` · ${fund.gestora}` : ''}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        )}
+        {!search.isLoading && !search.error && search.results.length === 0 && (
+          <p className="mt-4 text-sm text-muted-foreground">
+            {search.hasRun ? 'Nenhum ativo pendente foi encontrado para esta busca.' : 'Faça uma busca para ver os ativos disponíveis.'}
+          </p>
+        )}
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="secondary" onClick={props.onClose}>Cancelar</Button>
+          <Button onClick={search.onConfirm} disabled={!search.selectedId}>Selecionar</Button>
+        </div>
+      </Modal>
+    );
+  }
   return (
-    <Modal title={props.isEditing ? 'Editar fundo' : 'Adicionar fundo'} onClose={props.onClose}>
+    <Modal title={props.isEditing ? 'Editar fundo' : 'Completar cadastro do fundo'} onClose={props.onClose}>
+      {!props.isEditing && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-md bg-secondary p-3 text-sm">
+          <span>Revise os dados encontrados e preencha as informações restantes.</span>
+          <Button variant="secondary" onClick={props.onBackToSearch}>Trocar fundo</Button>
+        </div>
+      )}
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Nome do fundo *" error={props.errors.name}>
           <Input value={value('name')} onChange={(e) => change('name', e.target.value)} />
@@ -48,7 +99,7 @@ export function FundFormModalView(props: FundFormViewProps) {
         </Field>
         <Field label="Classe / Setor / Tipo *" error={props.errors.classe}>
           <Select value={value('classe')} onChange={(e) => change('classe', e.target.value)}>
-            {taxonomy[props.draft.type].map((item) => (
+            {props.taxonomy[props.draft.type].map((item) => (
               <option key={item.c}>{item.c}</option>
             ))}
           </Select>

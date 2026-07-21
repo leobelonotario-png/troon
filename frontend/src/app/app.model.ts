@@ -45,7 +45,7 @@ export function useAppModel(): AppViewProps {
     onAddIndustry: () => {
       const name = window.prompt('Nome do fundo da indústria');
       if (!name?.trim()) return;
-      fundMutation.mutate({ origin: 'industria', name: name.trim(), cnpj: '', shore: 'Onshore', type: 'liquido', status: 'Aberto', classe: '', sub: '', bench: '', liq: '', trib: '', gestora: '', data: '', prev: false, notaQuant: null, notaFinal: null, ret: null, vol: null, obs: '' });
+      fundMutation.mutate({ origin: 'industria', name: name.trim(), cnpj: '', shore: 'Onshore', type: 'liquido', status: 'Aberto', classe: '', sub: '', bench: '', liq: '', trib: '', gestora: '', data: '', prev: false, notaQuant: null, notaFinal: null, ret: null, vol: null, validated: false, obs: '' });
     },
     onEditIndustry: (fund) => {
       const name = window.prompt('Nome do fundo da indústria', fund.name);

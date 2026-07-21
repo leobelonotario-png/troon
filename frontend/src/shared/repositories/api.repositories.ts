@@ -32,6 +32,7 @@ export function toFund(value: ApiFund, position = 0): Fund {
     notaQuant: number('quantitativeRating'), notaFinal: number('finalRating'),
     ret: number('annualizedReturnSinceInception'), vol: number('annualizedVolatilitySinceInception'),
     updatedAt: typeof value.sharePriceDate === 'string' ? value.sharePriceDate.slice(0, 10) : null,
+    validated: value.validated === true,
     obs: string('notes'), color: string('color') || colors[position % colors.length],
   };
 }
@@ -45,13 +46,23 @@ function toApiFund(draft: FundDraft) {
     liquidity: draft.liq || null, taxation: draft.trib || null, managerName: draft.gestora || null,
     data: draft.data || null, recommended: draft.prev, quantitativeRating: draft.notaQuant,
     finalRating: draft.notaFinal, annualizedReturnSinceInception: draft.ret,
-    annualizedVolatilitySinceInception: draft.vol, notes: draft.obs || null,
+    annualizedVolatilitySinceInception: draft.vol, validated: draft.validated,
+    notes: draft.obs || null,
   };
 }
 
 export async function listFunds(): Promise<Fund[]> {
   const data = await request<{ items: ApiFund[] }>('/admin/funds?pageSize=100');
   return data.items.map(toFund);
+}
+export async function searchFunds(query: string): Promise<Fund[]> {
+  const params = new URLSearchParams({ search: query, pageSize: '20' });
+  const data = await request<{ items: ApiFund[] }>(`/admin/funds?${params}`);
+  return data.items.reduce<Fund[]>((results, item, position) => {
+    const fund = toFund(item, position);
+    if (!fund.validated) results.push(fund);
+    return results;
+  }, []);
 }
 export async function saveFund(draft: FundDraft): Promise<Fund> {
   const result = await request<ApiFund>(draft.id ? `/admin/funds/${draft.id}` : '/admin/funds', { method: draft.id ? 'PATCH' : 'POST', body: JSON.stringify(toApiFund(draft)) });

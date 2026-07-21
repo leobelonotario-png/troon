@@ -22,6 +22,7 @@ export interface Fund {
   ret: number | null;
   vol: number | null;
   updatedAt: string | null;
+  validated: boolean;
   obs: string;
   color: string;
 }

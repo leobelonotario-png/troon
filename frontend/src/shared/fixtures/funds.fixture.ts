@@ -92,6 +92,7 @@ const base = (
   ret,
   vol,
   updatedAt: '2026-07-01',
+  validated: true,
   obs: '',
   color,
 });
