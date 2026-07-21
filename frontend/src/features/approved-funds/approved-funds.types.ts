@@ -1,4 +1,4 @@
-import type { Fund, FundType } from '../../shared/domain/fund.types';
+import type { Fund, FundType, Taxonomy } from '../../shared/domain/fund.types';
 export interface FundFilters {
   q: string;
   classe: string;
@@ -10,6 +10,7 @@ export interface ApprovedFundsViewProps {
   type: FundType;
   title: string;
   funds: Fund[];
+  taxonomy: Taxonomy;
   filters: FundFilters;
   liquidView: 'onshore' | 'offshore' | 'prev';
   isFormOpen: boolean;

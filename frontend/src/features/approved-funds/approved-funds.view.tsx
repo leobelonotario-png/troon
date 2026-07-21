@@ -1,6 +1,5 @@
 import type { Fund } from '../../shared/domain/fund.types';
 import { Button, EmptyState, Input, Select } from '../../shared/components/ui';
-import { taxonomy } from '../../shared/fixtures/funds.fixture';
 import { FundFormModal } from './components/fund-form-modal';
 import type { ApprovedFundsViewProps, FundFilters } from './approved-funds.types';
 function FundCard({
@@ -14,6 +13,7 @@ function FundCard({
 }) {
   return (
     <button
+      type="button"
       className="flex gap-2.5 rounded-md border border-border border-l-[5px] bg-card p-2.5 text-left shadow-sm transition-shadow hover:shadow-md"
       style={{ borderLeftColor: fund.color }}
       onClick={() => onEdit(fund)}
@@ -37,24 +37,25 @@ function FundCard({
   );
 }
 export function ApprovedFundsView(props: ApprovedFundsViewProps) {
-  const classes = taxonomy[props.type];
+  const classes = props.taxonomy[props.type];
   const update = (key: keyof FundFilters, value: string) =>
     props.onFiltersChange({
       ...props.filters,
       [key]: value,
       ...(key === 'classe' ? { sub: '' } : {}),
     });
-  const grouped = classes
-    .map(({ c, s }) => ({
-      c,
-      groups: s
-        .map((sub) => ({
-          sub,
-          funds: props.funds.filter((fund) => fund.classe === c && fund.sub === sub),
-        }))
-        .filter((group) => group.funds.length),
-    }))
-    .filter((group) => group.groups.length);
+  const grouped = classes.reduce<Array<{ c: string; groups: Array<{ sub: string; funds: Fund[] }> }>>(
+    (result, { c, s }) => {
+      const groups = s.reduce<Array<{ sub: string; funds: Fund[] }>>((subclasses, sub) => {
+        const funds = props.funds.filter((fund) => fund.classe === c && fund.sub === sub);
+        if (funds.length) subclasses.push({ sub, funds });
+        return subclasses;
+      }, []);
+      if (groups.length) result.push({ c, groups });
+      return result;
+    },
+    [],
+  );
   return (
     <>
       <section>
@@ -69,6 +70,7 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
           <div className="mb-4 inline-flex rounded-md border border-border bg-card p-1" aria-label="Visão de fundos líquidos">
             {(['onshore', 'offshore', 'prev'] as const).map((view) => (
               <button
+                type="button"
                 className={`rounded px-3 py-1.5 text-sm ${props.liquidView === view ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
                 onClick={() => props.onLiquidViewChange(view)}
                 key={view}

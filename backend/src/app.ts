@@ -22,13 +22,16 @@ function parseFundInput(request: Request, response: Response) {
   return result.data;
 }
 
-function buildWhere(query: Request['query'], validatedOnly: boolean) {
-  const where: Record<string, unknown> = validatedOnly ? { validated: true } : {};
+function buildWhere(query: Request['query'], approvedOnly: boolean) {
+  const where: Record<string, unknown> = approvedOnly ? { validated: true, origin: 'APPROVED' } : {};
   for (const key of ['domicile', 'fundType', 'status', 'assetClass', 'subtype'] as const) {
     if (typeof query[key] === 'string') where[key] = query[key];
   }
-  if (!validatedOnly && typeof query.validated === 'string') {
+  if (!approvedOnly && typeof query.validated === 'string') {
     where.validated = query.validated === 'null' ? null : query.validated === 'true';
+  }
+  if (approvedOnly && typeof query.recommended === 'string') {
+    where.recommended = query.recommended === 'true';
   }
   if (typeof query.search === 'string' && query.search.trim()) {
     const search = query.search.trim();
@@ -37,13 +40,13 @@ function buildWhere(query: Request['query'], validatedOnly: boolean) {
   return where;
 }
 
-function listFunds(prisma: PrismaClient, validatedOnly: boolean) {
+function listFunds(prisma: PrismaClient, approvedOnly: boolean) {
   return async (request: Request, response: Response) => {
     const requestedPage = Number(request.query.page ?? 1);
     const requestedPageSize = Number(request.query.pageSize ?? 50);
     const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
     const pageSize = Number.isInteger(requestedPageSize) ? Math.min(Math.max(requestedPageSize, 1), 100) : 50;
-    const where = buildWhere(request.query, validatedOnly);
+    const where = buildWhere(request.query, approvedOnly);
     const [items, total] = await Promise.all([
       prisma.fund.findMany({ where, orderBy: { name: 'asc' }, skip: (page - 1) * pageSize, take: pageSize }),
       prisma.fund.count({ where }),

@@ -10,24 +10,25 @@ import type {
 export const pairKey = (one: string, other: string) => [one, other].sort().join('|');
 export function useFundComparatorModel(props: FundComparatorProps): FundComparatorViewProps {
   const [filters, setFilters] = useState<ComparatorFilters>({ type: '', classe: '', sub: '' });
+  const validatedFunds = useMemo(() => props.funds.filter((fund) => fund.validated), [props.funds]);
   const entities = useMemo<ComparisonEntity[]>(
     () => [
-      ...props.funds.map((fund) => ({
+      ...validatedFunds.map((fund) => ({
         ...fund,
         kind: fund.origin === 'industria' ? ('industry' as const) : ('fund' as const),
       })),
       ...props.indices.map((index) => ({ ...index, kind: 'index' as const })),
     ],
-    [props.funds, props.indices],
+    [validatedFunds, props.indices],
   );
   const reference = entities.find((entity) => entity.id === props.comparison.refId) ?? null;
-  const referenceOptions = props.funds.filter((fund) => fund.origin === 'aprovado');
+  const referenceOptions = validatedFunds.filter((fund) => fund.origin === 'aprovado');
   const classes = filters.type ? props.taxonomy[filters.type].map((item) => item.c) : [];
   const subclasses =
     filters.type && filters.classe
       ? (props.taxonomy[filters.type].find((item) => item.c === filters.classe)?.s ?? [])
       : [];
-  const filteredFunds = props.funds.filter(
+  const filteredFunds = validatedFunds.filter(
     (fund) =>
       fund.origin === 'aprovado' &&
       fund.id !== reference?.id &&
@@ -35,10 +36,15 @@ export function useFundComparatorModel(props: FundComparatorProps): FundComparat
       (!filters.classe || fund.classe === filters.classe) &&
       (!filters.sub || fund.sub === filters.sub),
   );
-  const selectedEntities = props.comparison.selected
-    .filter((id) => id !== reference?.id)
-    .map((id) => entities.find((entity) => entity.id === id))
-    .filter((entity): entity is ComparisonEntity => Boolean(entity));
+  const selectedEntities = props.comparison.selected.reduce<ComparisonEntity[]>(
+    (selected, id) => {
+      if (id === reference?.id) return selected;
+      const entity = entities.find((candidate) => candidate.id === id);
+      if (entity) selected.push(entity);
+      return selected;
+    },
+    [],
+  );
   const changeComparison = (patch: Partial<FundComparatorProps['comparison']>) =>
     props.onChangeComparison({ ...props.comparison, ...patch });
   const toggle = (id: string, checked: boolean) =>
@@ -49,6 +55,7 @@ export function useFundComparatorModel(props: FundComparatorProps): FundComparat
     });
   return {
     ...props,
+    funds: validatedFunds,
     referenceOptions,
     reference,
     filteredFunds,
@@ -71,23 +78,26 @@ export function useFundComparatorModel(props: FundComparatorProps): FundComparat
     onFieldChange: (field, value) => changeComparison({ [field]: value }),
     onToggleParticipant: toggle,
     onToggleFiltered: (checked) => {
-      const ids = filteredFunds.map((fund) => fund.id);
+      const ids = new Set(filteredFunds.map((fund) => fund.id));
       changeComparison({
         selected: checked
           ? [...new Set([...props.comparison.selected, ...ids])].filter(
               (id) => id !== reference?.id,
             )
-          : props.comparison.selected.filter((id) => !ids.includes(id)),
+          : props.comparison.selected.filter((id) => !ids.has(id)),
       });
     },
     onToggleIndustry: (checked) => {
-      const ids = props.funds.filter((fund) => fund.origin === 'industria').map((fund) => fund.id);
+      const ids = new Set<string>();
+      for (const fund of validatedFunds) {
+        if (fund.origin === 'industria') ids.add(fund.id);
+      }
       changeComparison({
         selected: checked
           ? [...new Set([...props.comparison.selected, ...ids])].filter(
               (id) => id !== reference?.id,
             )
-          : props.comparison.selected.filter((id) => !ids.includes(id)),
+          : props.comparison.selected.filter((id) => !ids.has(id)),
       });
     },
     onCorrelationChange: (id, value) => {

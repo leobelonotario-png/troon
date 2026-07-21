@@ -12,6 +12,7 @@ const tabs: Array<{ id: AppTab; label: string }> = [
   { id: 'comparador', label: 'Comparador' },
 ];
 export function AppView(props: AppViewProps) {
+  const validatedFunds = props.funds.filter((fund) => fund.validated);
   return (
     <div className="min-h-screen">
       <header className="flex items-center justify-between gap-4 bg-primary px-[max(1.5rem,calc((100vw-80rem)/2))] py-[1.125rem] text-primary-foreground">
@@ -47,11 +48,11 @@ export function AppView(props: AppViewProps) {
         {props.activeTab === 'liquido' ||
         props.activeTab === 'iliquido' ||
         props.activeTab === 'listado' ? (
-          <ApprovedFunds type={props.activeTab} />
+          <ApprovedFunds type={props.activeTab} taxonomy={props.taxonomy} />
         ) : props.activeTab === 'universo' ? (
           <ComparisonUniverse
             indices={props.indices}
-            industryFunds={props.funds.filter((fund) => fund.origin === 'industria')}
+            industryFunds={validatedFunds.filter((fund) => fund.origin === 'industria')}
             onSaveIndex={props.onSaveIndex}
             onRemoveIndex={props.onRemoveIndex}
             onAddIndustryFund={props.onAddIndustry}
@@ -59,7 +60,7 @@ export function AppView(props: AppViewProps) {
           />
         ) : (
           <FundComparator
-            funds={props.funds}
+            funds={validatedFunds}
             indices={props.indices}
             taxonomy={props.taxonomy}
             comparison={props.comparison}

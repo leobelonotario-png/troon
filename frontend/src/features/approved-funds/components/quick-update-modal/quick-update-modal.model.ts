@@ -17,13 +17,13 @@ export function useQuickUpdateModalModel({ onClose }: QuickUpdateModalProps): Qu
   useEffect(() => {
     if (!rows.length && fundsQuery.data) {
       setRows(fundsQuery.data.reduce<QuickRow[]>((result, fund) => {
-        if (fund.origin === 'aprovado') result.push({ id: fund.id, name: fund.name, cnpj: fund.cnpj, ret: fund.ret?.toString() ?? '', vol: fund.vol?.toString() ?? '' });
+        if (fund.validated && fund.origin === 'aprovado') result.push({ id: fund.id, name: fund.name, cnpj: fund.cnpj, ret: fund.ret?.toString() ?? '', vol: fund.vol?.toString() ?? '' });
         return result;
       }, []));
     }
   }, [fundsQuery.data, rows.length]);
   const onApplyPaste = () => {
-    const sources = fundsQuery.data ?? []; let matched = 0; const unknown: string[] = []; const byId = new Map(rows.map(row => [row.id, row]));
+    const sources = (fundsQuery.data ?? []).filter((fund) => fund.validated && fund.origin === 'aprovado'); let matched = 0; const unknown: string[] = []; const byId = new Map(rows.map(row => [row.id, row]));
     paste.split(/\r?\n/).filter(Boolean).forEach(line => { const [key, ret, vol] = line.split(/[\t;]/).map(cell => cell.trim()); const fund = sources.find(item => item.name.toLowerCase() === key.toLowerCase() || (item.cnpj && item.cnpj === key)); if (!fund) { unknown.push(key); return; } matched++; const row = byId.get(fund.id); if (row) { row.ret = ret ?? row.ret; row.vol = vol ?? row.vol; } });
     setRows([...byId.values()]); setFeedback(`${matched} linha(s) preenchida(s)${unknown.length ? `. Não reconhecidas: ${unknown.join(', ')}` : '.'}`);
   };

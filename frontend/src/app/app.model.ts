@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Comparison } from '../shared/domain/index.types';
-import { getComparison, getTaxonomy, listFunds, listIndices, removeIndex, saveComparison, saveFund, saveIndex } from '../shared/repositories/api.repositories';
+import { getComparison, getTaxonomy, listApprovedFunds, listIndices, removeIndex, saveComparison, saveFund, saveIndex } from '../shared/repositories/api.repositories';
 import type { AppTab, AppViewProps } from './app.types';
 export function useAppModel(): AppViewProps {
   const [activeTab, setActiveTab] = useState<AppTab>('liquido');
   const [isQuickUpdateOpen, setQuickUpdateOpen] = useState(false);
   const queryClient = useQueryClient();
-  const fundsQuery = useQuery({ queryKey: ['funds'], queryFn: listFunds });
+  const needsAllFunds = activeTab === 'universo' || activeTab === 'comparador';
+  const fundsQuery = useQuery({ queryKey: ['funds', 'approved', 'all'], queryFn: () => listApprovedFunds(), enabled: needsAllFunds });
   const indicesQuery = useQuery({ queryKey: ['indices'], queryFn: listIndices });
   const taxonomyQuery = useQuery({ queryKey: ['taxonomy'], queryFn: getTaxonomy });
   const comparisonQuery = useQuery({ queryKey: ['comparison'], queryFn: getComparison });

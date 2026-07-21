@@ -55,6 +55,18 @@ export async function listFunds(): Promise<Fund[]> {
   const data = await request<{ items: ApiFund[] }>('/admin/funds?pageSize=100');
   return data.items.map(toFund);
 }
+export async function listApprovedFunds(filters: {
+  type?: FundType;
+  shore?: Fund['shore'];
+  recommended?: boolean;
+} = {}): Promise<Fund[]> {
+  const params = new URLSearchParams({ pageSize: '100' });
+  if (filters.type) params.set('fundType', typeToApi[filters.type]);
+  if (filters.shore) params.set('domicile', filters.shore === 'Offshore' ? 'OFFSHORE' : 'ONSHORE');
+  if (filters.recommended !== undefined) params.set('recommended', String(filters.recommended));
+  const data = await request<{ items: ApiFund[] }>(`/funds?${params}`);
+  return data.items.map(toFund);
+}
 export async function searchFunds(query: string): Promise<Fund[]> {
   const params = new URLSearchParams({ search: query, pageSize: '20' });
   const data = await request<{ items: ApiFund[] }>(`/admin/funds?${params}`);
