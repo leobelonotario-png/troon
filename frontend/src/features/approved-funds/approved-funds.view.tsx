@@ -29,8 +29,16 @@ function FundCard({
         <span className="mt-1.5 block text-xs text-muted-foreground">
           Ret {fund.ret?.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) ?? '–'}% · Vol{' '}
           {fund.vol?.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) ?? '–'}%{' '}
-          {fund.shore === 'Offshore' && <em className="ml-1 rounded bg-secondary px-1.5 py-0.5 not-italic text-secondary-foreground">Offshore</em>}
-          {fund.status === 'Fechado' && <em className="ml-1 rounded bg-destructive/15 px-1.5 py-0.5 not-italic text-destructive">Fechado</em>}
+          {fund.shore === 'Offshore' && (
+            <em className="ml-1 rounded bg-secondary px-1.5 py-0.5 not-italic text-secondary-foreground">
+              Offshore
+            </em>
+          )}
+          {fund.status === 'Fechado' && (
+            <em className="ml-1 rounded bg-destructive/15 px-1.5 py-0.5 not-italic text-destructive">
+              Fechado
+            </em>
+          )}
         </span>
       </span>
     </button>
@@ -44,18 +52,17 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
       [key]: value,
       ...(key === 'classe' ? { sub: '' } : {}),
     });
-  const grouped = classes.reduce<Array<{ c: string; groups: Array<{ sub: string; funds: Fund[] }> }>>(
-    (result, { c, s }) => {
-      const groups = s.reduce<Array<{ sub: string; funds: Fund[] }>>((subclasses, sub) => {
-        const funds = props.funds.filter((fund) => fund.classe === c && fund.sub === sub);
-        if (funds.length) subclasses.push({ sub, funds });
-        return subclasses;
-      }, []);
-      if (groups.length) result.push({ c, groups });
-      return result;
-    },
-    [],
-  );
+  const grouped = classes.reduce<
+    Array<{ c: string; groups: Array<{ sub: string; funds: Fund[] }> }>
+  >((result, { c, s }) => {
+    const groups = s.reduce<Array<{ sub: string; funds: Fund[] }>>((subclasses, sub) => {
+      const funds = props.funds.filter((fund) => fund.classe === c && fund.sub === sub);
+      if (funds.length) subclasses.push({ sub, funds });
+      return subclasses;
+    }, []);
+    if (groups.length) result.push({ c, groups });
+    return result;
+  }, []);
   return (
     <>
       <section>
@@ -67,7 +74,10 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
           <Button onClick={props.onAdd}>+ Adicionar fundo</Button>
         </div>
         {props.type === 'liquido' && (
-          <div className="mb-4 inline-flex rounded-md border border-border bg-card p-1" aria-label="Visão de fundos líquidos">
+          <div
+            className="mb-4 inline-flex rounded-md border border-border bg-card p-1"
+            aria-label="Visão de fundos líquidos"
+          >
             {(['onshore', 'offshore', 'prev'] as const).map((view) => (
               <button
                 type="button"

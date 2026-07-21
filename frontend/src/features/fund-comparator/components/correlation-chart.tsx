@@ -18,7 +18,11 @@ export function CorrelationChart({ reference, participants, correlations }: Prop
       (row): row is { entity: ComparisonEntity; value: number } => typeof row.value === 'number',
     );
   if (!rows.length)
-    return <p className="rounded-lg border border-dashed border-border p-7 text-center text-sm text-muted-foreground">Informe as correlações para visualizar o gráfico.</p>;
+    return (
+      <p className="rounded-lg border border-dashed border-border p-7 text-center text-sm text-muted-foreground">
+        Informe as correlações para visualizar o gráfico.
+      </p>
+    );
   return (
     <div
       className="grid gap-3"
@@ -31,7 +35,10 @@ export function CorrelationChart({ reference, participants, correlations }: Prop
         <span>1</span>
       </div>
       {rows.map(({ entity, value }) => (
-        <div className="grid grid-cols-[minmax(7rem,1fr)_minmax(12rem,2fr)_3rem] items-center gap-2" key={entity.id}>
+        <div
+          className="grid grid-cols-[minmax(7rem,1fr)_minmax(12rem,2fr)_3rem] items-center gap-2"
+          key={entity.id}
+        >
           <span>{entity.name}</span>
           <div className="relative h-5 rounded bg-muted">
             <i className="absolute left-1/2 top-0 h-full border-l border-foreground/30" />

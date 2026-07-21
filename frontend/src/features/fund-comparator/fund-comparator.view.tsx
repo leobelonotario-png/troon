@@ -31,7 +31,9 @@ const Group = ({
         </label>
       ))
     ) : (
-      <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Nenhuma opção disponível.</p>
+      <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+        Nenhuma opção disponível.
+      </p>
     )}
   </section>
 );
@@ -181,7 +183,10 @@ export function FundComparatorView(props: FundComparatorViewProps) {
                   {props.selectedEntities.map((entity) => (
                     <label key={entity.id}>
                       <span>
-                        <i className="mr-1 inline-block size-2.5 rounded-full" style={{ backgroundColor: entity.color }} />
+                        <i
+                          className="mr-1 inline-block size-2.5 rounded-full"
+                          style={{ backgroundColor: entity.color }}
+                        />
                         {entity.name}
                       </span>
                       <input
@@ -197,10 +202,14 @@ export function FundComparatorView(props: FundComparatorViewProps) {
                   ))}
                 </div>
               ) : (
-                <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Nenhum participante selecionado.</p>
+                <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+                  Nenhum participante selecionado.
+                </p>
               )
             ) : (
-              <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Selecione um fundo de referência.</p>
+              <p className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+                Selecione um fundo de referência.
+              </p>
             )}
           </section>
         </aside>

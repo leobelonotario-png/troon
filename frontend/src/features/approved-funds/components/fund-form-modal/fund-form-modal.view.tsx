@@ -21,14 +21,18 @@ export function FundFormModalView(props: FundFormViewProps) {
     const search = props.search;
     return (
       <Modal title="Adicionar fundo" onClose={props.onClose}>
-        <p className="mb-4 text-sm text-muted-foreground">Busque pelo nome ou CNPJ do fundo para iniciar o cadastro.</p>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Busque pelo nome ou CNPJ do fundo para iniciar o cadastro.
+        </p>
         <div className="flex gap-2">
           <Input
             aria-label="Nome ou CNPJ do fundo"
             placeholder="Nome ou CNPJ"
             value={search.query}
             onChange={(event) => search.onQueryChange(event.target.value)}
-            onKeyDown={(event) => { if (event.key === 'Enter') search.onSearch(); }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') search.onSearch();
+            }}
           />
           <Button onClick={search.onSearch} disabled={!search.query.trim() || search.isLoading}>
             {search.isLoading ? 'Buscando...' : 'Buscar'}
@@ -42,10 +46,18 @@ export function FundFormModalView(props: FundFormViewProps) {
                 className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 ${search.selectedId === fund.id ? 'border-primary bg-primary/5' : 'border-border'}`}
                 key={fund.id}
               >
-                <input type="radio" name="fund" checked={search.selectedId === fund.id} onChange={() => search.onSelect(fund.id)} />
+                <input
+                  type="radio"
+                  name="fund"
+                  checked={search.selectedId === fund.id}
+                  onChange={() => search.onSelect(fund.id)}
+                />
                 <span>
                   <b className="block text-sm">{fund.name}</b>
-                  <span className="text-xs text-muted-foreground">{fund.cnpj || 'CNPJ não informado'}{fund.gestora ? ` · ${fund.gestora}` : ''}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {fund.cnpj || 'CNPJ não informado'}
+                    {fund.gestora ? ` · ${fund.gestora}` : ''}
+                  </span>
                 </span>
               </label>
             ))}
@@ -53,22 +65,33 @@ export function FundFormModalView(props: FundFormViewProps) {
         )}
         {!search.isLoading && !search.error && search.results.length === 0 && (
           <p className="mt-4 text-sm text-muted-foreground">
-            {search.hasRun ? 'Nenhum ativo pendente foi encontrado para esta busca.' : 'Faça uma busca para ver os ativos disponíveis.'}
+            {search.hasRun
+              ? 'Nenhum ativo pendente foi encontrado para esta busca.'
+              : 'Faça uma busca para ver os ativos disponíveis.'}
           </p>
         )}
         <div className="mt-5 flex justify-end gap-2">
-          <Button variant="secondary" onClick={props.onClose}>Cancelar</Button>
-          <Button onClick={search.onConfirm} disabled={!search.selectedId}>Selecionar</Button>
+          <Button variant="secondary" onClick={props.onClose}>
+            Cancelar
+          </Button>
+          <Button onClick={search.onConfirm} disabled={!search.selectedId}>
+            Selecionar
+          </Button>
         </div>
       </Modal>
     );
   }
   return (
-    <Modal title={props.isEditing ? 'Editar fundo' : 'Completar cadastro do fundo'} onClose={props.onClose}>
+    <Modal
+      title={props.isEditing ? 'Editar fundo' : 'Completar cadastro do fundo'}
+      onClose={props.onClose}
+    >
       {!props.isEditing && (
         <div className="mb-4 flex items-center justify-between gap-3 rounded-md bg-secondary p-3 text-sm">
           <span>Revise os dados encontrados e preencha as informações restantes.</span>
-          <Button variant="secondary" onClick={props.onBackToSearch}>Trocar fundo</Button>
+          <Button variant="secondary" onClick={props.onBackToSearch}>
+            Trocar fundo
+          </Button>
         </div>
       )}
       <div className="grid gap-4 md:grid-cols-2">

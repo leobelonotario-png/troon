@@ -1,24 +1,61 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getTaxonomy, removeFund, saveFund, searchFunds } from '../../../../shared/repositories/api.repositories';
+import {
+  getTaxonomy,
+  removeFund,
+  saveFund,
+  searchFunds,
+} from '../../../../shared/repositories/api.repositories';
 import type { Fund, FundDraft, FundType, Taxonomy } from '../../../../shared/domain/fund.types';
 import type { FundFormModalProps, FundFormViewProps } from './fund-form-modal.types';
 
 const emptyTaxonomy: Taxonomy = { liquido: [], iliquido: [], listado: [] };
 const newDraft = (type: FundType, taxonomy: Taxonomy): FundDraft => ({
-  origin: 'aprovado', name: '', cnpj: '', shore: 'Onshore', type, status: 'Aberto',
-  classe: taxonomy[type][0]?.c ?? '', sub: taxonomy[type][0]?.s[0] ?? '', bench: '', liq: '',
-  trib: '', gestora: '', data: '', prev: false, notaQuant: null, notaFinal: null, ret: null,
-  vol: null, obs: '',
+  origin: 'aprovado',
+  name: '',
+  cnpj: '',
+  shore: 'Onshore',
+  type,
+  status: 'Aberto',
+  classe: taxonomy[type][0]?.c ?? '',
+  sub: taxonomy[type][0]?.s[0] ?? '',
+  bench: '',
+  liq: '',
+  trib: '',
+  gestora: '',
+  data: '',
+  prev: false,
+  notaQuant: null,
+  notaFinal: null,
+  ret: null,
+  vol: null,
+  obs: '',
   validated: false,
 });
 
-export function useFundFormModalModel({ fund, initialType, onClose, onSaved }: FundFormModalProps): FundFormViewProps {
+export function useFundFormModalModel({
+  fund,
+  initialType,
+  onClose,
+  onSaved,
+}: FundFormModalProps): FundFormViewProps {
   const taxonomyQuery = useQuery({ queryKey: ['taxonomy'], queryFn: getTaxonomy });
   const taxonomy = taxonomyQuery.data ?? emptyTaxonomy;
   const queryClient = useQueryClient();
-  const saveMutation = useMutation({ mutationFn: saveFund, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['funds'] }); onSaved(); } });
-  const deleteMutation = useMutation({ mutationFn: removeFund, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['funds'] }); onSaved(); } });
+  const saveMutation = useMutation({
+    mutationFn: saveFund,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funds'] });
+      onSaved();
+    },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: removeFund,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['funds'] });
+      onSaved();
+    },
+  });
   const [draft, setDraft] = useState<FundDraft>(fund ?? newDraft(initialType, taxonomy));
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState<Fund[]>([]);
@@ -44,13 +81,22 @@ export function useFundFormModalModel({ fund, initialType, onClose, onSaved }: F
       setIsSearching(false);
     }
   };
-  const subclasses = useMemo(() => taxonomy[draft.type].find(item => item.c === draft.classe)?.s ?? [], [taxonomy, draft.type, draft.classe]);
-  const onChange = (key: keyof FundDraft, value: string | boolean | number | null) => setDraft(current => {
-    const next = { ...current, [key]: value } as FundDraft;
-    if (key === 'type') { const type = value as FundType; next.classe = taxonomy[type][0]?.c ?? ''; next.sub = taxonomy[type][0]?.s[0] ?? ''; }
-    if (key === 'classe') next.sub = taxonomy[next.type].find(item => item.c === value)?.s[0] ?? '';
-    return next;
-  });
+  const subclasses = useMemo(
+    () => taxonomy[draft.type].find((item) => item.c === draft.classe)?.s ?? [],
+    [taxonomy, draft.type, draft.classe],
+  );
+  const onChange = (key: keyof FundDraft, value: string | boolean | number | null) =>
+    setDraft((current) => {
+      const next = { ...current, [key]: value } as FundDraft;
+      if (key === 'type') {
+        const type = value as FundType;
+        next.classe = taxonomy[type][0]?.c ?? '';
+        next.sub = taxonomy[type][0]?.s[0] ?? '';
+      }
+      if (key === 'classe')
+        next.sub = taxonomy[next.type].find((item) => item.c === value)?.s[0] ?? '';
+      return next;
+    });
   const onSave = () => {
     const nextErrors: Partial<Record<keyof FundDraft, string>> = {};
     if (!draft.name.trim()) nextErrors.name = 'Informe o nome do fundo.';
@@ -69,14 +115,33 @@ export function useFundFormModalModel({ fund, initialType, onClose, onSaved }: F
     setDraft({ ...selectedDraft, validated: false });
   };
   return {
-    draft, errors, isEditing: Boolean(fund), isSelectingFund: !fund && !draft.id,
-    subclasses, taxonomy,
+    draft,
+    errors,
+    isEditing: Boolean(fund),
+    isSelectingFund: !fund && !draft.id,
+    subclasses,
+    taxonomy,
     search: {
-      query: search, results: searchResults, selectedId: selectedFundId, hasRun: hasSearched,
-      isLoading: isSearching, error: searchError, onQueryChange: setSearch, onSearch,
-      onSelect: selectSearchResult, onConfirm: confirmSelection,
+      query: search,
+      results: searchResults,
+      selectedId: selectedFundId,
+      hasRun: hasSearched,
+      isLoading: isSearching,
+      error: searchError,
+      onQueryChange: setSearch,
+      onSearch,
+      onSelect: selectSearchResult,
+      onConfirm: confirmSelection,
     },
-    onBackToSearch: () => { setDraft(newDraft(initialType, taxonomy)); setSelectedFundId(null); },
-    onChange, onSave, onDelete: () => { if (fund) deleteMutation.mutate(fund.id); }, onClose,
+    onBackToSearch: () => {
+      setDraft(newDraft(initialType, taxonomy));
+      setSelectedFundId(null);
+    },
+    onChange,
+    onSave,
+    onDelete: () => {
+      if (fund) deleteMutation.mutate(fund.id);
+    },
+    onClose,
   };
 }

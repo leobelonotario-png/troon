@@ -14,13 +14,14 @@ export function useApprovedFundsModel(type: FundType, taxonomy: Taxonomy): Appro
   const [liquidView, setLiquidView] = useState<'onshore' | 'offshore' | 'prev'>('onshore');
   const [editingFund, setEditingFund] = useState<Fund | null>(null);
   const [isFormOpen, setFormOpen] = useState(false);
-  const pageFilters = type === 'liquido'
-    ? liquidView === 'offshore'
-      ? { type, shore: 'Offshore' as const }
-      : liquidView === 'prev'
-        ? { type, recommended: true }
-        : { type, shore: 'Onshore' as const, recommended: false }
-    : { type };
+  const pageFilters =
+    type === 'liquido'
+      ? liquidView === 'offshore'
+        ? { type, shore: 'Offshore' as const }
+        : liquidView === 'prev'
+          ? { type, recommended: true }
+          : { type, shore: 'Onshore' as const, recommended: false }
+      : { type };
   const fundsQuery = useQuery({
     queryKey: ['funds', 'approved', type, liquidView],
     queryFn: () => listApprovedFunds(pageFilters),

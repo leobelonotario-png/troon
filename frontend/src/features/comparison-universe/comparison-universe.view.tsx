@@ -19,7 +19,10 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
       <section className="mb-5 rounded-lg border border-border bg-card p-4 shadow-sm">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3>Índices / Benchmarks</h3>
-          <button className="rounded bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground" onClick={props.onOpenNewIndex}>
+          <button
+            className="rounded bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+            onClick={props.onOpenNewIndex}
+          >
             Adicionar índice
           </button>
         </div>
@@ -41,7 +44,10 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
               {props.indices.map((index) => (
                 <tr key={index.id}>
                   <td>
-                    <i className="mr-2 inline-block size-2.5 rounded-full" style={{ backgroundColor: index.color }} />{' '}
+                    <i
+                      className="mr-2 inline-block size-2.5 rounded-full"
+                      style={{ backgroundColor: index.color }}
+                    />{' '}
                     <strong>{index.name}</strong>
                   </td>
                   <td className="text-right">{pct(index.ret)}</td>
@@ -75,13 +81,20 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
               ))}
             </tbody>
           </table>
-          {props.indices.length === 0 && <p className="mt-3 rounded border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Nenhum índice cadastrado.</p>}
+          {props.indices.length === 0 && (
+            <p className="mt-3 rounded border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+              Nenhum índice cadastrado.
+            </p>
+          )}
         </div>
       </section>
       <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3>Fundos da Indústria</h3>
-          <button className="rounded bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground" onClick={props.onAddIndustryFund}>
+          <button
+            className="rounded bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+            onClick={props.onAddIndustryFund}
+          >
             Adicionar fundo da indústria
           </button>
         </div>
@@ -104,7 +117,8 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
               {props.industryFunds.map((fund) => (
                 <tr key={fund.id}>
                   <td>
-                    <i className="mr-2 inline-block size-2.5 rounded-full bg-muted-foreground" /> <strong>{fund.name}</strong>
+                    <i className="mr-2 inline-block size-2.5 rounded-full bg-muted-foreground" />{' '}
+                    <strong>{fund.name}</strong>
                   </td>
                   <td>{fund.cnpj || '—'}</td>
                   <td>{fund.classe ? `${fund.classe} › ${fund.sub}` : '—'}</td>
@@ -124,12 +138,18 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
             </tbody>
           </table>
           {props.industryFunds.length === 0 && (
-            <p className="mt-3 rounded border border-dashed border-border p-4 text-center text-sm text-muted-foreground">Nenhum fundo da indústria cadastrado.</p>
+            <p className="mt-3 rounded border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+              Nenhum fundo da indústria cadastrado.
+            </p>
           )}
         </div>
       </section>
       {props.isModalOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/70 p-4" role="presentation" onMouseDown={props.onCloseModal}>
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-foreground/70 p-4"
+          role="presentation"
+          onMouseDown={props.onCloseModal}
+        >
           <form
             className="w-full max-w-md rounded-lg bg-card p-5 shadow-xl"
             aria-labelledby="index-modal-title"
@@ -188,7 +208,10 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
               >
                 Cancelar
               </button>
-              <button className="rounded bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground" type="submit">
+              <button
+                className="rounded bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
+                type="submit"
+              >
                 Salvar índice
               </button>
             </footer>

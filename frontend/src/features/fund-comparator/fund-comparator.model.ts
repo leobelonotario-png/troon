@@ -36,15 +36,12 @@ export function useFundComparatorModel(props: FundComparatorProps): FundComparat
       (!filters.classe || fund.classe === filters.classe) &&
       (!filters.sub || fund.sub === filters.sub),
   );
-  const selectedEntities = props.comparison.selected.reduce<ComparisonEntity[]>(
-    (selected, id) => {
-      if (id === reference?.id) return selected;
-      const entity = entities.find((candidate) => candidate.id === id);
-      if (entity) selected.push(entity);
-      return selected;
-    },
-    [],
-  );
+  const selectedEntities = props.comparison.selected.reduce<ComparisonEntity[]>((selected, id) => {
+    if (id === reference?.id) return selected;
+    const entity = entities.find((candidate) => candidate.id === id);
+    if (entity) selected.push(entity);
+    return selected;
+  }, []);
   const changeComparison = (patch: Partial<FundComparatorProps['comparison']>) =>
     props.onChangeComparison({ ...props.comparison, ...patch });
   const toggle = (id: string, checked: boolean) =>

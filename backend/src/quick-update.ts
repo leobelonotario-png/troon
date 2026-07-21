@@ -43,14 +43,19 @@ function parseRows(content: Buffer) {
   const headers = Object.keys(rows[0] ?? {});
   const hasIdentifier = headers.some((header) => ['CNPJ ou Nome', 'CNPJ', 'Nome'].includes(header));
   const hasReturn = headers.some((header) => ['Retorno', 'Retorno (% a.a.)'].includes(header));
-  const hasVolatility = headers.some((header) => ['Vol', 'Volatilidade', 'Vol (% a.a.)'].includes(header));
+  const hasVolatility = headers.some((header) =>
+    ['Vol', 'Volatilidade', 'Vol (% a.a.)'].includes(header),
+  );
   if (!hasIdentifier || !hasReturn || !hasVolatility) {
     throw new Error('O CSV deve ter as colunas "CNPJ ou Nome" (ou CNPJ/Nome), "Retorno" e "Vol".');
   }
   return rows;
 }
 
-export async function validateMetricsCsv(prisma: PrismaClient, content: Buffer): Promise<CsvValidationResult> {
+export async function validateMetricsCsv(
+  prisma: PrismaClient,
+  content: Buffer,
+): Promise<CsvValidationResult> {
   const rows = parseRows(content);
   const funds = await prisma.fund.findMany({
     where: { validated: true },
@@ -65,10 +70,15 @@ export async function validateMetricsCsv(prisma: PrismaClient, content: Buffer):
     if (!identifier) throw new Error(`Linha ${line}: CNPJ ou Nome é obrigatório.`);
     const fund = funds.find(
       (item) =>
-        item.fundRegistrationNumber === identifier || item.name.localeCompare(identifier, 'pt-BR', { sensitivity: 'accent' }) === 0,
+        item.fundRegistrationNumber === identifier ||
+        item.name.localeCompare(identifier, 'pt-BR', { sensitivity: 'accent' }) === 0,
     );
-    if (!fund) throw new Error(`Linha ${line}: fundo "${identifier}" não foi encontrado entre os fundos aprovados.`);
-    if (ids.has(fund.id)) throw new Error(`Linha ${line}: o fundo "${identifier}" foi informado mais de uma vez.`);
+    if (!fund)
+      throw new Error(
+        `Linha ${line}: fundo "${identifier}" não foi encontrado entre os fundos aprovados.`,
+      );
+    if (ids.has(fund.id))
+      throw new Error(`Linha ${line}: o fundo "${identifier}" foi informado mais de uma vez.`);
     ids.add(fund.id);
     updates.push({
       id: fund.id,
