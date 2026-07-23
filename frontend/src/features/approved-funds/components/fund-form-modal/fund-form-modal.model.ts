@@ -17,8 +17,8 @@ const newDraft = (type: FundType, taxonomy: Taxonomy): FundDraft => ({
   shore: 'Onshore',
   type,
   status: 'Aberto',
-  classe: taxonomy[type][0]?.c ?? '',
-  sub: taxonomy[type][0]?.s[0] ?? '',
+  classe: taxonomy[type][0]?.id ?? '',
+  sub: taxonomy[type][0]?.subtypes[0]?.id ?? '',
   bench: '',
   liq: '',
   trib: '',
@@ -82,7 +82,7 @@ export function useFundFormModalModel({
     }
   };
   const subclasses = useMemo(
-    () => taxonomy[draft.type].find((item) => item.c === draft.classe)?.s ?? [],
+    () => taxonomy[draft.type].find((item) => item.id === draft.classe)?.subtypes ?? [],
     [taxonomy, draft.type, draft.classe],
   );
   const onChange = (key: keyof FundDraft, value: string | boolean | number | null) =>
@@ -90,11 +90,11 @@ export function useFundFormModalModel({
       const next = { ...current, [key]: value } as FundDraft;
       if (key === 'type') {
         const type = value as FundType;
-        next.classe = taxonomy[type][0]?.c ?? '';
-        next.sub = taxonomy[type][0]?.s[0] ?? '';
+        next.classe = taxonomy[type][0]?.id ?? '';
+        next.sub = taxonomy[type][0]?.subtypes[0]?.id ?? '';
       }
       if (key === 'classe')
-        next.sub = taxonomy[next.type].find((item) => item.c === value)?.s[0] ?? '';
+        next.sub = taxonomy[next.type].find((item) => item.id === value)?.subtypes[0]?.id ?? '';
       return next;
     });
   const onSave = () => {

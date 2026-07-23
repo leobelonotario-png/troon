@@ -123,14 +123,18 @@ export function FundFormModalView(props: FundFormViewProps) {
         <Field label="Classe / Setor / Tipo *" error={props.errors.classe}>
           <Select value={value('classe')} onChange={(e) => change('classe', e.target.value)}>
             {props.taxonomy[props.draft.type].map((item) => (
-              <option key={item.c}>{item.c}</option>
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
             ))}
           </Select>
         </Field>
         <Field label="Subclasse / Subsetor *" error={props.errors.sub}>
           <Select value={value('sub')} onChange={(e) => change('sub', e.target.value)}>
-            {props.subclasses.map((sub) => (
-              <option key={sub}>{sub}</option>
+            {props.subclasses.map((subtype) => (
+              <option key={subtype.id} value={subtype.id}>
+                {subtype.label}
+              </option>
             ))}
           </Select>
         </Field>

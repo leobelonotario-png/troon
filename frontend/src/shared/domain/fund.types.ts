@@ -29,8 +29,11 @@ export interface Fund {
 export interface FundDraft extends Omit<Fund, 'id' | 'color' | 'updatedAt'> {
   id?: string;
 }
-export interface TaxonomyClass {
-  c: string;
-  s: string[];
+export interface TaxonomyOption {
+  id: string;
+  label: string;
+}
+export interface TaxonomyClass extends TaxonomyOption {
+  subtypes: TaxonomyOption[];
 }
 export type Taxonomy = Record<FundType, TaxonomyClass[]>;

@@ -23,10 +23,10 @@ export function useFundComparatorModel(props: FundComparatorProps): FundComparat
   );
   const reference = entities.find((entity) => entity.id === props.comparison.refId) ?? null;
   const referenceOptions = validatedFunds.filter((fund) => fund.origin === 'aprovado');
-  const classes = filters.type ? props.taxonomy[filters.type].map((item) => item.c) : [];
+  const classes = filters.type ? props.taxonomy[filters.type] : [];
   const subclasses =
     filters.type && filters.classe
-      ? (props.taxonomy[filters.type].find((item) => item.c === filters.classe)?.s ?? [])
+      ? (props.taxonomy[filters.type].find((item) => item.id === filters.classe)?.subtypes ?? [])
       : [];
   const filteredFunds = validatedFunds.filter(
     (fund) =>

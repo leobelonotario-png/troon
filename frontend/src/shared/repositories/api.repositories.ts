@@ -21,6 +21,11 @@ type ApiComparison = {
   period: string;
   correlations: Record<string, number>;
 };
+export type LiquidView = 'onshore' | 'offshore' | 'prev';
+export type LiquidViewCounts = Record<LiquidView, number>;
+type ApiFundList = {
+  items: ApiFund[];
+};
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${apiUrl}${path}`, {
@@ -110,15 +115,23 @@ export async function listApprovedFunds(
     type?: FundType;
     shore?: Fund['shore'];
     recommended?: boolean;
+    assetClass?: string;
+    subtype?: string;
+    pagination?: false;
   } = {},
-): Promise<Fund[]> {
-  const params = new URLSearchParams({ pageSize: '100' });
+): Promise<{ funds: Fund[] }> {
+  const params = new URLSearchParams(
+    filters.pagination === false ? { pagination: 'false' } : { pageSize: '100' },
+  );
   if (filters.type) params.set('fundType', typeToApi[filters.type]);
   if (filters.shore) params.set('domicile', filters.shore === 'Offshore' ? 'OFFSHORE' : 'ONSHORE');
   if (filters.recommended !== undefined) params.set('recommended', String(filters.recommended));
-  const data = await request<{ items: ApiFund[] }>(`/funds?${params}`);
-  return data.items.map(toFund);
+  if (filters.assetClass) params.set('assetClass', filters.assetClass);
+  if (filters.subtype) params.set('subtype', filters.subtype);
+  const data = await request<ApiFundList>(`/funds?${params}`);
+  return { funds: data.items.map(toFund) };
 }
+export const getLiquidViewCounts = () => request<LiquidViewCounts>('/funds/liquid-view-counts');
 export async function searchFunds(query: string): Promise<Fund[]> {
   const params = new URLSearchParams({ search: query, pageSize: '20' });
   const data = await request<{ items: ApiFund[] }>(`/admin/funds?${params}`);
@@ -152,13 +165,16 @@ export const importFundsCsv = (file: File) => {
 
 export async function getTaxonomy(): Promise<Taxonomy> {
   const data =
-    await request<Record<string, Array<{ assetClass: string; subtypes: string[] }>>>(
-      '/fund-taxonomy',
-    );
+    await request<
+      Record<
+        string,
+        Array<{ id: string; label: string; subtypes: Taxonomy['liquido'][number]['subtypes'] }>
+      >
+    >('/fund-taxonomy');
   return {
-    liquido: (data.LIQUID ?? []).map((item) => ({ c: item.assetClass, s: item.subtypes })),
-    iliquido: (data.ILLIQUID ?? []).map((item) => ({ c: item.assetClass, s: item.subtypes })),
-    listado: (data.LISTED ?? []).map((item) => ({ c: item.assetClass, s: item.subtypes })),
+    liquido: data.LIQUID ?? [],
+    iliquido: data.ILLIQUID ?? [],
+    listado: data.LISTED ?? [],
   };
 }
 function toIndex(value: ApiIndex): Index {

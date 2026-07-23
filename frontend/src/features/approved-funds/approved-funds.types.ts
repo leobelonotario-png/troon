@@ -1,7 +1,7 @@
 import type { Fund, FundType, Taxonomy } from '../../shared/domain/fund.types';
+import type { LiquidView, LiquidViewCounts } from '../../shared/repositories/api.repositories';
 export interface FundFilters {
   q: string;
-  classe: string;
   sub: string;
   liq: string;
   trib: string;
@@ -12,11 +12,14 @@ export interface ApprovedFundsViewProps {
   funds: Fund[];
   taxonomy: Taxonomy;
   filters: FundFilters;
-  liquidView: 'onshore' | 'offshore' | 'prev';
+  liquidView: LiquidView;
+  liquidViewCounts?: LiquidViewCounts;
+  activeClassId: string;
   isFormOpen: boolean;
   editingFund: Fund | null;
   onFiltersChange(filters: FundFilters): void;
-  onLiquidViewChange(view: 'onshore' | 'offshore' | 'prev'): void;
+  onLiquidViewChange(view: LiquidView): void;
+  onClassChange(classId: string): void;
   onAdd(): void;
   onEdit(fund: Fund): void;
   onCloseForm(): void;

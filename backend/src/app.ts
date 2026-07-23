@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { fundInputSchema, importFundsCsv, validateFundLifecycle } from './funds.js';
 import { importMetricsCsv, validateMetricsCsv } from './quick-update.js';
-import { taxonomy } from './taxonomy.js';
+import { getTaxonomyResponse } from './taxonomy.js';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
@@ -46,6 +46,14 @@ function buildWhere(query: Request['query'], approvedOnly: boolean) {
 
 function listFunds(prisma: PrismaClient, approvedOnly: boolean) {
   return async (request: Request, response: Response) => {
+    const unpaginated = request.query.pagination === 'false';
+    if (
+      unpaginated &&
+      (typeof request.query.assetClass !== 'string' || typeof request.query.subtype !== 'string')
+    )
+      return response.status(400).json({
+        error: 'pagination=false requires assetClass and subtype.',
+      });
     const requestedPage = Number(request.query.page ?? 1);
     const requestedPageSize = Number(request.query.pageSize ?? 50);
     const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
@@ -57,12 +65,29 @@ function listFunds(prisma: PrismaClient, approvedOnly: boolean) {
       prisma.fund.findMany({
         where,
         orderBy: { name: 'asc' },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
+        ...(unpaginated ? {} : { skip: (page - 1) * pageSize, take: pageSize }),
       }),
       prisma.fund.count({ where }),
     ]);
-    response.json({ items, page, pageSize, total });
+    if (unpaginated) return response.json({ items, total });
+    response.json({
+      items,
+      page,
+      pageSize,
+      total,
+    });
+  };
+}
+
+function getLiquidViewCounts(prisma: PrismaClient) {
+  const base = { validated: true, origin: 'APPROVED' as const, fundType: 'LIQUID' as const };
+  return async (_request: Request, response: Response) => {
+    const [onshore, offshore, prev] = await Promise.all([
+      prisma.fund.count({ where: { ...base, domicile: 'ONSHORE', recommended: false } }),
+      prisma.fund.count({ where: { ...base, domicile: 'OFFSHORE' } }),
+      prisma.fund.count({ where: { ...base, recommended: true } }),
+    ]);
+    response.json({ onshore, offshore, prev });
   };
 }
 
@@ -83,8 +108,9 @@ export function createApp(prisma = new PrismaClient()) {
     await prisma.$queryRaw`SELECT 1`;
     response.json({ status: 'ok' });
   });
-  app.get('/fund-taxonomy', (_request, response) => response.json(taxonomy));
+  app.get('/fund-taxonomy', (_request, response) => response.json(getTaxonomyResponse()));
   app.get('/funds', listFunds(prisma, true));
+  app.get('/funds/liquid-view-counts', getLiquidViewCounts(prisma));
   app.get('/admin/funds', listFunds(prisma, false));
 
   app.get('/funds/:id', async (request, response) => {
@@ -147,13 +173,11 @@ export function createApp(prisma = new PrismaClient()) {
     if (lifecycleError) return sendValidationError(response, lifecycleError);
     try {
       const { classCode, name, ...optionalData } = input;
-      return response
-        .status(201)
-        .json(
-          await prisma.fund.create({
-            data: { classCode: classCode ?? `manual-${randomUUID()}`, name, ...optionalData },
-          }),
-        );
+      return response.status(201).json(
+        await prisma.fund.create({
+          data: { classCode: classCode ?? `manual-${randomUUID()}`, name, ...optionalData },
+        }),
+      );
     } catch (error) {
       return response
         .status(409)

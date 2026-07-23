@@ -1,4 +1,10 @@
-import type { Fund, FundDraft, FundType, Taxonomy } from '../../../../shared/domain/fund.types';
+import type {
+  Fund,
+  FundDraft,
+  FundType,
+  Taxonomy,
+  TaxonomyOption,
+} from '../../../../shared/domain/fund.types';
 export interface FundFormModalProps {
   fund: Fund | null;
   initialType: FundType;
@@ -22,7 +28,7 @@ export interface FundFormViewProps {
   errors: Partial<Record<keyof FundDraft, string>>;
   isEditing: boolean;
   isSelectingFund: boolean;
-  subclasses: string[];
+  subclasses: TaxonomyOption[];
   taxonomy: Taxonomy;
   search: FundSearchViewProps;
   onBackToSearch(): void;

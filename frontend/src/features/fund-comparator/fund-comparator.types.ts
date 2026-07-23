@@ -1,4 +1,4 @@
-import type { Fund, FundType, Taxonomy } from '../../shared/domain/fund.types';
+import type { Fund, FundType, Taxonomy, TaxonomyOption } from '../../shared/domain/fund.types';
 import type { Comparison, Index } from '../../shared/domain/index.types';
 
 export type ComparisonEntity = (Fund & { kind: 'fund' | 'industry' }) | (Index & { kind: 'index' });
@@ -22,8 +22,8 @@ export interface FundComparatorViewProps extends FundComparatorProps {
   selectedEntities: ComparisonEntity[];
   reference: ComparisonEntity | null;
   filters: ComparatorFilters;
-  classes: string[];
-  subclasses: string[];
+  classes: TaxonomyOption[];
+  subclasses: TaxonomyOption[];
   onFiltersChange: (patch: Partial<ComparatorFilters>) => void;
   onReferenceChange: (id: string) => void;
   onFieldChange: (field: 'titulo' | 'fonte' | 'periodo', value: string) => void;

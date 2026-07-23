@@ -59,7 +59,7 @@ export function useAppModel(): AppViewProps {
   return {
     activeTab,
     isQuickUpdateOpen,
-    funds: fundsQuery.data ?? [],
+    funds: fundsQuery.data?.funds ?? [],
     indices: indicesQuery.data ?? [],
     taxonomy: taxonomyQuery.data ?? { liquido: [], iliquido: [], listado: [] },
     comparison: currentComparison,

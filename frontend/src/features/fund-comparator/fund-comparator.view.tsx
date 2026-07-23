@@ -112,8 +112,10 @@ export function FundComparatorView(props: FundComparatorViewProps) {
                   disabled={!props.filters.type}
                 >
                   <option value="">Todas as classes</option>
-                  {props.classes.map((value) => (
-                    <option key={value}>{value}</option>
+                  {props.classes.map((taxonomyClass) => (
+                    <option key={taxonomyClass.id} value={taxonomyClass.id}>
+                      {taxonomyClass.label}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -125,8 +127,10 @@ export function FundComparatorView(props: FundComparatorViewProps) {
                   disabled={!props.filters.classe}
                 >
                   <option value="">Todas as subclasses</option>
-                  {props.subclasses.map((value) => (
-                    <option key={value}>{value}</option>
+                  {props.subclasses.map((subtype) => (
+                    <option key={subtype.id} value={subtype.id}>
+                      {subtype.label}
+                    </option>
                   ))}
                 </select>
               </label>

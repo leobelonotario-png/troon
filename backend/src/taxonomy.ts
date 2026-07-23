@@ -5,6 +5,79 @@ type TaxonomyEntry = {
   subtypes: readonly Subtype[];
 };
 
+type TaxonomyOption<T extends string> = { id: T; label: string };
+export type TaxonomyResponse = Record<
+  FundType,
+  Array<TaxonomyOption<AssetClass> & { subtypes: Array<TaxonomyOption<Subtype>> }>
+>;
+
+const assetClassLabels: Record<AssetClass, string> = {
+  FLOATING_RATE: 'Pós-fixado',
+  SHORT_DURATION: 'Curta duração',
+  LONG_DURATION: 'Longa duração',
+  HEDGE_FUNDS: 'Multimercados',
+  EQUITIES: 'Ações',
+  ALTERNATIVES: 'Alternativos',
+  FII_BRICK_AND_MORTAR: 'FIIs — Tijolo',
+  FII_PAPER: 'FIIs — Papel',
+  FII_HYBRID: 'FIIs — Híbridos',
+  FII_FOFS: 'FIIs — FOFs',
+  ETF: 'ETFs',
+};
+
+const subtypeLabels: Record<Subtype, string> = {
+  OVERNIGHT: 'Overnight',
+  HIGH_GRADE: 'High Grade',
+  HIGH_YIELD: 'High Yield',
+  SD_SOVEREIGN: 'Soberano de curta duração',
+  LD_SOVEREIGN: 'Soberano de longa duração',
+  MACRO: 'Macro',
+  MULTI_STRATEGY: 'Multiestratégia',
+  LONG_AND_SHORT: 'Long and Short',
+  LARGE_CAP_VALUE: 'Large Cap Value',
+  MID_CAP_VALUE: 'Mid Cap Value',
+  SMALL_CAP_VALUE: 'Small Cap Value',
+  LARGE_CAP_BLEND: 'Large Cap Blend',
+  MID_CAP_BLEND: 'Mid Cap Blend',
+  SMALL_CAP_BLEND: 'Small Cap Blend',
+  LARGE_CAP_GROWTH: 'Large Cap Growth',
+  MID_CAP_GROWTH: 'Mid Cap Growth',
+  SMALL_CAP_GROWTH: 'Small Cap Growth',
+  LONG_BIASED: 'Long Biased',
+  SECONDARIES: 'Secundários',
+  STRUCTURED_CREDIT: 'Crédito estruturado',
+  SPECIAL_SITUATION: 'Situações especiais',
+  PRIVATE_EQUITY: 'Private Equity',
+  GROWTH_CAPITAL: 'Capital de crescimento',
+  VENTURE_CAPITAL: 'Venture Capital',
+  PUBLIC_INFRASTRUCTURE: 'Infraestrutura pública',
+  PUBLIC_REAL_ESTATE: 'Imóveis públicos',
+  PRIVATE_REAL_ESTATE: 'Imóveis privados',
+  GOLD: 'Ouro',
+  CURRENCY: 'Moedas',
+  CRYPTOCURRENCY: 'Criptomoedas',
+  COMMODITIES: 'Commodities',
+  LOGISTICS: 'Logística',
+  CORPORATE_OFFICES: 'Lajes corporativas',
+  SHOPPING: 'Shopping',
+  URBAN_INCOME: 'Renda urbana',
+  INDUSTRIAL: 'Industrial',
+  HOSPITALITY: 'Hotelaria',
+  RESIDENTIAL: 'Residencial',
+  AGRICULTURE: 'Agronegócio',
+  DEVELOPMENT: 'Desenvolvimento',
+  OTHER: 'Outros',
+  HYBRID: 'Híbridos',
+  FOF: 'FOFs',
+  EQUITIES: 'Ações',
+  FIXED_INCOME_SECURITIES: 'Renda fixa e títulos',
+  FACTORS: 'Fatores',
+  SECTORAL: 'Setoriais',
+  THEMATIC: 'Temáticos',
+  ASSETS: 'Ativos',
+  DIGITAL_ASSETS: 'Ativos digitais',
+};
+
 export const taxonomy: Record<FundType, readonly TaxonomyEntry[]> = {
   LIQUID: [
     { assetClass: 'FLOATING_RATE', subtypes: ['OVERNIGHT', 'HIGH_GRADE', 'HIGH_YIELD'] },
@@ -81,6 +154,19 @@ export const taxonomy: Record<FundType, readonly TaxonomyEntry[]> = {
     },
   ],
 };
+
+export function getTaxonomyResponse(): TaxonomyResponse {
+  return Object.fromEntries(
+    Object.entries(taxonomy).map(([fundType, entries]) => [
+      fundType,
+      entries.map(({ assetClass, subtypes }) => ({
+        id: assetClass,
+        label: assetClassLabels[assetClass],
+        subtypes: subtypes.map((subtype) => ({ id: subtype, label: subtypeLabels[subtype] })),
+      })),
+    ]),
+  ) as TaxonomyResponse;
+}
 
 export function hasValidTaxonomyCombination(
   fundType: FundType,

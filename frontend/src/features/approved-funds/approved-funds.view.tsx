@@ -46,51 +46,86 @@ function FundCard({
 }
 export function ApprovedFundsView(props: ApprovedFundsViewProps) {
   const classes = props.taxonomy[props.type];
+  const visibleClasses = props.activeClassId
+    ? classes.filter((taxonomyClass) => taxonomyClass.id === props.activeClassId)
+    : classes;
+  const visibleSubtypes = visibleClasses.reduce<Array<{ id: string; label: string; key: string }>>(
+    (result, taxonomyClass) => {
+      for (const subtype of taxonomyClass.subtypes)
+        result.push({ ...subtype, key: `${taxonomyClass.id}-${subtype.id}` });
+      return result;
+    },
+    [],
+  );
   const update = (key: keyof FundFilters, value: string) =>
     props.onFiltersChange({
       ...props.filters,
       [key]: value,
-      ...(key === 'classe' ? { sub: '' } : {}),
     });
-  const grouped = classes.reduce<
-    Array<{ c: string; groups: Array<{ sub: string; funds: Fund[] }> }>
-  >((result, { c, s }) => {
-    const groups = s.reduce<Array<{ sub: string; funds: Fund[] }>>((subclasses, sub) => {
-      const funds = props.funds.filter((fund) => fund.classe === c && fund.sub === sub);
-      if (funds.length) subclasses.push({ sub, funds });
-      return subclasses;
-    }, []);
-    if (groups.length) result.push({ c, groups });
+  const grouped = visibleClasses.reduce<
+    Array<{
+      id: string;
+      label: string;
+      groups: Array<{ id: string; label: string; funds: Fund[] }>;
+    }>
+  >((result, taxonomyClass) => {
+    const groups = taxonomyClass.subtypes.map((subtype) => {
+      const funds = props.funds.filter(
+        (fund) => fund.classe === taxonomyClass.id && fund.sub === subtype.id,
+      );
+      return { ...subtype, funds };
+    });
+    result.push({ ...taxonomyClass, groups });
     return result;
   }, []);
   return (
     <>
       <section>
-        <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1>{props.title}</h1>
-            <p>Monitoramento de fundos aprovados e suas métricas.</p>
-          </div>
+        <div className="mb-5 flex flex-wrap items-center gap-3">
+          <h1 className="mr-auto text-xl font-bold">{props.title}</h1>
+          {props.type === 'liquido' && (
+            <div
+              className="inline-flex rounded-md border border-border bg-card p-1"
+              aria-label="Visão de fundos líquidos"
+            >
+              {(['onshore', 'offshore', 'prev'] as const).map((view) => (
+                <button
+                  type="button"
+                  className={`rounded px-3 py-1.5 text-sm ${props.liquidView === view ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
+                  onClick={() => props.onLiquidViewChange(view)}
+                  key={view}
+                >
+                  {view === 'prev' ? 'Prev' : view[0].toUpperCase() + view.slice(1)} (
+                  {props.liquidViewCounts?.[view] ?? '–'})
+                </button>
+              ))}
+            </div>
+          )}
           <Button onClick={props.onAdd}>+ Adicionar fundo</Button>
         </div>
-        {props.type === 'liquido' && (
-          <div
-            className="mb-4 inline-flex rounded-md border border-border bg-card p-1"
-            aria-label="Visão de fundos líquidos"
+        <div
+          className="mb-4 flex gap-1 overflow-x-auto border-b border-border"
+          aria-label="Classes de ativos"
+        >
+          <button
+            type="button"
+            className={`whitespace-nowrap border-b-2 px-3 py-2 text-sm ${!props.activeClassId ? 'border-primary font-semibold text-primary' : 'border-transparent text-muted-foreground'}`}
+            onClick={() => props.onClassChange('')}
           >
-            {(['onshore', 'offshore', 'prev'] as const).map((view) => (
-              <button
-                type="button"
-                className={`rounded px-3 py-1.5 text-sm ${props.liquidView === view ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
-                onClick={() => props.onLiquidViewChange(view)}
-                key={view}
-              >
-                {view === 'prev' ? 'Prev' : view[0].toUpperCase() + view.slice(1)}
-              </button>
-            ))}
-          </div>
-        )}
-        <div className="mb-6 grid gap-2 md:grid-cols-3 xl:grid-cols-6">
+            Todas as classes
+          </button>
+          {classes.map((taxonomyClass) => (
+            <button
+              type="button"
+              className={`whitespace-nowrap border-b-2 px-3 py-2 text-sm ${props.activeClassId === taxonomyClass.id ? 'border-primary font-semibold text-primary' : 'border-transparent text-muted-foreground'}`}
+              onClick={() => props.onClassChange(taxonomyClass.id)}
+              key={taxonomyClass.id}
+            >
+              {taxonomyClass.label}
+            </button>
+          ))}
+        </div>
+        <div className="mb-6 grid gap-2 md:grid-cols-3 xl:grid-cols-5">
           <Input
             aria-label="Buscar fundo"
             placeholder="Buscar por nome, CNPJ ou gestora"
@@ -98,26 +133,16 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
             onChange={(event) => update('q', event.target.value)}
           />
           <Select
-            aria-label="Classe"
-            value={props.filters.classe}
-            onChange={(event) => update('classe', event.target.value)}
-          >
-            <option value="">Todas as classes</option>
-            {classes.map((item) => (
-              <option key={item.c}>{item.c}</option>
-            ))}
-          </Select>
-          <Select
             aria-label="Subclasse"
             value={props.filters.sub}
             onChange={(event) => update('sub', event.target.value)}
           >
             <option value="">Todas as subclasses</option>
-            {classes
-              .find((item) => item.c === props.filters.classe)
-              ?.s.map((sub) => (
-                <option key={sub}>{sub}</option>
-              ))}
+            {visibleSubtypes.map((subtype) => (
+              <option key={subtype.key} value={subtype.id}>
+                {subtype.label}
+              </option>
+            ))}
           </Select>
           <Input
             aria-label="Liquidez"
@@ -133,37 +158,49 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
           />
           <Button
             variant="secondary"
-            onClick={() => props.onFiltersChange({ q: '', classe: '', sub: '', liq: '', trib: '' })}
+            onClick={() => props.onFiltersChange({ q: '', sub: '', liq: '', trib: '' })}
           >
             Limpar
           </Button>
         </div>
         {grouped.length ? (
           grouped.map((group) => (
-            <section className="mb-8" key={group.c}>
-              <h2>{group.c}</h2>
-              {group.groups.map(({ sub, funds }) => {
-                const ranked = [...funds]
-                  .filter((fund) => fund.notaQuant !== null)
-                  .sort((a, b) => (b.notaQuant ?? 0) - (a.notaQuant ?? 0));
-                return (
-                  <div className="mb-5" key={sub}>
-                    <h3>{sub}</h3>
-                    <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
-                      {funds.map((fund) => (
-                        <FundCard
-                          key={fund.id}
-                          fund={fund}
-                          rank={
-                            ranked.findIndex((rankedFund) => rankedFund.id === fund.id) + 1 || null
-                          }
-                          onEdit={props.onEdit}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+            <section className="mb-8" key={group.id}>
+              <h2>
+                {group.label} (
+                {group.groups.reduce((total, subgroup) => total + subgroup.funds.length, 0)})
+              </h2>
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {group.groups.map(({ id, label, funds }) => {
+                  const ranked = [...funds]
+                    .filter((fund) => fund.notaQuant !== null)
+                    .sort((a, b) => (b.notaQuant ?? 0) - (a.notaQuant ?? 0));
+                  return (
+                    <section className="rounded-md border border-border bg-card p-3" key={id}>
+                      <h3 className="mb-3 border-b border-border pb-2">{label}</h3>
+                      <div className="flex flex-col gap-2.5">
+                        {funds.length ? (
+                          funds.map((fund) => (
+                            <FundCard
+                              key={fund.id}
+                              fund={fund}
+                              rank={
+                                ranked.findIndex((rankedFund) => rankedFund.id === fund.id) + 1 ||
+                                null
+                              }
+                              onEdit={props.onEdit}
+                            />
+                          ))
+                        ) : (
+                          <p className="py-3 text-center text-sm italic text-muted-foreground">
+                            Nenhum fundo nesta subclasse.
+                          </p>
+                        )}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
             </section>
           ))
         ) : (

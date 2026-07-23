@@ -1,62 +1,101 @@
 import type { Fund, Taxonomy } from '../domain/fund.types';
 
+const option = (id: string, label: string) => ({ id, label });
+
 export const taxonomy: Taxonomy = {
   liquido: [
-    { c: 'Pós-Fixado (Floating)', s: ['Overnight', 'FL High Grade', 'FL High Yield'] },
-    { c: 'Curta Duração (Short Duration)', s: ['SD Sovereign', 'SD High Grade', 'SD High Yield'] },
-    { c: 'Longa Duração (Long Duration)', s: ['LD Sovereign', 'LD High Grade', 'LD High Yield'] },
-    { c: 'Multimercados (Hedge Funds)', s: ['Macro', 'Multi-Strategy', 'Long and Short'] },
     {
-      c: 'Renda Variável (Equities)',
-      s: ['Large-cap Value', 'Mid-cap Value', 'Small-cap Value', 'Large-cap Blend', 'Long Biased'],
+      ...option('FLOATING_RATE', 'Pós-fixado'),
+      subtypes: [
+        option('OVERNIGHT', 'Overnight'),
+        option('HIGH_GRADE', 'High Grade'),
+        option('HIGH_YIELD', 'High Yield'),
+      ],
+    },
+    {
+      ...option('SHORT_DURATION', 'Curta duração'),
+      subtypes: [
+        option('SD_SOVEREIGN', 'Soberano de curta duração'),
+        option('HIGH_GRADE', 'High Grade'),
+        option('HIGH_YIELD', 'High Yield'),
+      ],
+    },
+    {
+      ...option('LONG_DURATION', 'Longa duração'),
+      subtypes: [
+        option('LD_SOVEREIGN', 'Soberano de longa duração'),
+        option('HIGH_GRADE', 'High Grade'),
+        option('HIGH_YIELD', 'High Yield'),
+      ],
+    },
+    {
+      ...option('HEDGE_FUNDS', 'Multimercados'),
+      subtypes: [
+        option('MACRO', 'Macro'),
+        option('MULTI_STRATEGY', 'Multiestratégia'),
+        option('LONG_AND_SHORT', 'Long and Short'),
+      ],
+    },
+    {
+      ...option('EQUITIES', 'Ações'),
+      subtypes: [
+        option('LARGE_CAP_VALUE', 'Large Cap Value'),
+        option('MID_CAP_VALUE', 'Mid Cap Value'),
+        option('SMALL_CAP_VALUE', 'Small Cap Value'),
+        option('LARGE_CAP_BLEND', 'Large Cap Blend'),
+        option('LONG_BIASED', 'Long Biased'),
+      ],
     },
   ],
   iliquido: [
     {
-      c: 'Alternativos (Alternatives)',
-      s: [
-        'Secondaries',
-        'Structured Credit',
-        'Special Situation',
-        'Private Equity',
-        'Growth Capital',
-        'Venture Capital',
-        'Private Infrastructure',
-        'Private Real Estate',
-        'Gold',
-        'Cryptocurrency',
+      ...option('ALTERNATIVES', 'Alternativos'),
+      subtypes: [
+        option('SECONDARIES', 'Secundários'),
+        option('STRUCTURED_CREDIT', 'Crédito estruturado'),
+        option('SPECIAL_SITUATION', 'Situações especiais'),
+        option('PRIVATE_EQUITY', 'Private Equity'),
+        option('GROWTH_CAPITAL', 'Capital de crescimento'),
+        option('VENTURE_CAPITAL', 'Venture Capital'),
+        option('PUBLIC_INFRASTRUCTURE', 'Infraestrutura pública'),
+        option('PUBLIC_REAL_ESTATE', 'Imóveis públicos'),
+        option('GOLD', 'Ouro'),
+        option('CRYPTOCURRENCY', 'Criptomoedas'),
       ],
     },
   ],
   listado: [
     {
-      c: 'FIIs — Tijolo',
-      s: [
-        'Logística',
-        'Lajes Corporativas',
-        'Shopping',
-        'Renda Urbana',
-        'Industrial',
-        'Hotelaria',
-        'Residencial',
-        'Agro',
-        'Desenvolvimento',
-        'Outros',
+      ...option('FII_BRICK_AND_MORTAR', 'FIIs — Tijolo'),
+      subtypes: [
+        option('LOGISTICS', 'Logística'),
+        option('CORPORATE_OFFICES', 'Lajes corporativas'),
+        option('SHOPPING', 'Shopping'),
+        option('URBAN_INCOME', 'Renda urbana'),
+        option('INDUSTRIAL', 'Industrial'),
+        option('HOSPITALITY', 'Hotelaria'),
+        option('RESIDENTIAL', 'Residencial'),
+        option('AGRICULTURE', 'Agronegócio'),
+        option('DEVELOPMENT', 'Desenvolvimento'),
+        option('OTHER', 'Outros'),
       ],
     },
-    { c: 'FIIs — Papel', s: ['High Grade', 'High Yield'] },
-    { c: 'FIIs — Híbridos', s: ['Híbridos'] },
-    { c: 'FIIs — FOFs', s: ['FOFs'] },
     {
-      c: 'ETFs',
-      s: [
-        'Ações',
-        'Renda Fixa/Títulos',
-        'Commodities',
-        'Fatores',
-        'Setoriais',
-        'Temáticos',
-        'Ativos Digitais',
+      ...option('FII_PAPER', 'FIIs — Papel'),
+      subtypes: [option('HIGH_GRADE', 'High Grade'), option('HIGH_YIELD', 'High Yield')],
+    },
+    { ...option('FII_HYBRID', 'FIIs — Híbridos'), subtypes: [option('HYBRID', 'Híbridos')] },
+    { ...option('FII_FOFS', 'FIIs — FOFs'), subtypes: [option('FOF', 'FOFs')] },
+    {
+      ...option('ETF', 'ETFs'),
+      subtypes: [
+        option('EQUITIES', 'Ações'),
+        option('FIXED_INCOME_SECURITIES', 'Renda fixa e títulos'),
+        option('COMMODITIES', 'Commodities'),
+        option('FACTORS', 'Fatores'),
+        option('SECTORAL', 'Setoriais'),
+        option('THEMATIC', 'Temáticos'),
+        option('DIGITAL_ASSETS', 'Ativos digitais'),
       ],
     },
   ],
