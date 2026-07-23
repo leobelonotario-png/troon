@@ -129,49 +129,6 @@ function csvRecordToData(row: CsvRecord): Prisma.FundCreateInput {
   };
 }
 
-const importedFundColumns = [
-  'classCode',
-  'name',
-  'fundRegistrationNumber',
-  'managerName',
-  'managerRegistrationNumber',
-  'anbimaCategory',
-  'netAssetsBillions',
-  'investorCount',
-  'trailingTwelveMonthsReturn',
-  'sharePrice',
-  'sharePriceDate',
-  'lastImportedAt',
-] as const;
-
-const importColumnsSql = Prisma.join(
-  importedFundColumns.map((column) => Prisma.raw(`"${column}"`)),
-  ', ',
-);
-const importUpdateSql = Prisma.join(
-  importedFundColumns
-    .filter((column) => column !== 'classCode')
-    .map((column) => Prisma.raw(`"${column}" = EXCLUDED."${column}"`)),
-  ', ',
-);
-
-function fundValuesSql(data: Prisma.FundCreateInput) {
-  return Prisma.sql`(
-    ${data.classCode},
-    ${data.name},
-    ${data.fundRegistrationNumber},
-    ${data.managerName},
-    ${data.managerRegistrationNumber},
-    ${data.anbimaCategory},
-    ${data.netAssetsBillions},
-    ${data.investorCount},
-    ${data.trailingTwelveMonthsReturn},
-    ${data.sharePrice},
-    ${data.sharePriceDate},
-    ${data.lastImportedAt}
-  )`;
-}
-
 export async function importFundsCsv(prisma: PrismaClient, content: Buffer) {
   const rows = parse(content, {
     bom: true,
@@ -220,23 +177,30 @@ export async function importFundsCsv(prisma: PrismaClient, content: Buffer) {
         })
       ).map((fund) => fund.classCode),
     );
+    const knownCodes = new Set(existingCodes);
     let created = 0;
     let updated = 0;
     for (const fund of importedRows) {
-      if (existingCodes.has(fund.classCode)) updated += 1;
+      if (knownCodes.has(fund.classCode)) updated += 1;
       else {
         created += 1;
-        existingCodes.add(fund.classCode);
+        knownCodes.add(fund.classCode);
       }
     }
 
-    await prisma.$executeRaw(
-      Prisma.sql`
-        INSERT INTO "Fund" (${importColumnsSql})
-        VALUES ${Prisma.join(funds.map(fundValuesSql), ', ')}
-        ON CONFLICT ("classCode") DO UPDATE SET ${importUpdateSql}
-      `,
-    );
+    const newFunds = funds.filter((fund) => !existingCodes.has(fund.classCode));
+    const existingFunds = funds.filter((fund) => existingCodes.has(fund.classCode));
+    if (newFunds.length) await prisma.fund.createMany({ data: newFunds });
+
+    const updateBatchSize = 500;
+    for (let offset = 0; offset < existingFunds.length; offset += updateBatchSize) {
+      await prisma.$transaction(
+        existingFunds.slice(offset, offset + updateBatchSize).map((fund) => {
+          const { classCode, ...data } = fund;
+          return prisma.fund.update({ where: { classCode }, data });
+        }),
+      );
+    }
     summary.created += created;
     summary.updated += updated;
   }
