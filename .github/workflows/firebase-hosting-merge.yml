@@ -22,22 +22,3 @@ jobs:
           channelId: live
           projectId: troon-teste
           entryPoint: frontend
-
-  deploy_backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install backend dependencies
-        run: npm ci --workspace=backend --include-workspace-root=false
-      - name: Generate Prisma Client
-        run: npx prisma generate --schema=backend/prisma/schema.prisma
-      - name: Apply Prisma migrations
-        run: npx prisma migrate deploy --schema=backend/prisma/schema.prisma
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      - name: Build backend
-        run: npm run build --workspace=backend
-      - name: Deploy backend to Railway
-        run: npx @railway/cli@latest up backend --path-as-root --service backend --ci
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
