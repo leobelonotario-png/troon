@@ -94,13 +94,14 @@ function getLiquidViewCounts(prisma: PrismaClient) {
 export function createApp(prisma = new PrismaClient()) {
   const app = express();
   app.use(express.json());
-  app.use((_request, response, next) => {
+  app.use((request, response, next) => {
     response.setHeader(
       'Access-Control-Allow-Origin',
       process.env.CORS_ORIGIN ?? 'http://localhost:5173',
     );
     response.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
     response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (request.method === 'OPTIONS') return response.status(204).end();
     next();
   });
 

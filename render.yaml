@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: troon-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run prisma:generate --workspace=@troon/backend && npm run build --workspace=@troon/backend
+    startCommand: npm run prisma:migrate:deploy --workspace=@troon/backend && npm run start --workspace=@troon/backend
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: DATABASE_URL
+        fromDatabase:
+          name: troon-db
+          property: connectionString
+      - key: CORS_ORIGIN
+        sync: false
+
+databases:
+  - name: troon-db
+    plan: free
+    databaseName: troon
+    user: troon
