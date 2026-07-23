@@ -129,6 +129,49 @@ function csvRecordToData(row: CsvRecord): Prisma.FundCreateInput {
   };
 }
 
+const importedFundColumns = [
+  'classCode',
+  'name',
+  'fundRegistrationNumber',
+  'managerName',
+  'managerRegistrationNumber',
+  'anbimaCategory',
+  'netAssetsBillions',
+  'investorCount',
+  'trailingTwelveMonthsReturn',
+  'sharePrice',
+  'sharePriceDate',
+  'lastImportedAt',
+] as const;
+
+const importColumnsSql = Prisma.join(
+  importedFundColumns.map((column) => Prisma.raw(`"${column}"`)),
+  ', ',
+);
+const importUpdateSql = Prisma.join(
+  importedFundColumns
+    .filter((column) => column !== 'classCode')
+    .map((column) => Prisma.raw(`"${column}" = EXCLUDED."${column}"`)),
+  ', ',
+);
+
+function fundValuesSql(data: Prisma.FundCreateInput) {
+  return Prisma.sql`(
+    ${data.classCode},
+    ${data.name},
+    ${data.fundRegistrationNumber},
+    ${data.managerName},
+    ${data.managerRegistrationNumber},
+    ${data.anbimaCategory},
+    ${data.netAssetsBillions},
+    ${data.investorCount},
+    ${data.trailingTwelveMonthsReturn},
+    ${data.sharePrice},
+    ${data.sharePriceDate},
+    ${data.lastImportedAt}
+  )`;
+}
+
 export async function importFundsCsv(prisma: PrismaClient, content: Buffer) {
   const rows = parse(content, {
     bom: true,
@@ -145,40 +188,57 @@ export async function importFundsCsv(prisma: PrismaClient, content: Buffer) {
     rejected: 0,
     errors: [] as { row: number; message: string }[],
   };
-  const batchSize = 100;
+  const batchSize = 1_000;
 
   for (let start = 0; start < rows.length; start += batchSize) {
     const batch = rows.slice(start, start + batchSize);
-    await prisma.$transaction(
-      async (transaction) => {
-        for (const [offset, row] of batch.entries()) {
-          try {
-            const data = csvRecordToData(row);
-            const existing = await transaction.fund.findUnique({
-              where: { classCode: data.classCode },
-            });
-            if (existing) {
-              const { classCode, ...importData } = data;
-              await transaction.fund.update({
-                where: { classCode },
-                data: importData,
-              });
-              summary.updated += 1;
-            } else {
-              await transaction.fund.create({ data });
-              summary.created += 1;
-            }
-          } catch (error) {
-            summary.rejected += 1;
-            summary.errors.push({
-              row: start + offset + 2,
-              message: error instanceof Error ? error.message : 'Invalid CSV row.',
-            });
-          }
-        }
-      },
-      { maxWait: 10_000, timeout: 30_000 },
+    const dataByClassCode = new Map<string, Prisma.FundCreateInput>();
+    const importedRows: Prisma.FundCreateInput[] = [];
+
+    for (const [offset, row] of batch.entries()) {
+      try {
+        const data = csvRecordToData(row);
+        importedRows.push(data);
+        dataByClassCode.set(data.classCode, data);
+      } catch (error) {
+        summary.rejected += 1;
+        summary.errors.push({
+          row: start + offset + 2,
+          message: error instanceof Error ? error.message : 'Invalid CSV row.',
+        });
+      }
+    }
+
+    const funds = [...dataByClassCode.values()];
+    if (!funds.length) continue;
+
+    const existingCodes = new Set(
+      (
+        await prisma.fund.findMany({
+          where: { classCode: { in: funds.map((fund) => fund.classCode) } },
+          select: { classCode: true },
+        })
+      ).map((fund) => fund.classCode),
     );
+    let created = 0;
+    let updated = 0;
+    for (const fund of importedRows) {
+      if (existingCodes.has(fund.classCode)) updated += 1;
+      else {
+        created += 1;
+        existingCodes.add(fund.classCode);
+      }
+    }
+
+    await prisma.$executeRaw(
+      Prisma.sql`
+        INSERT INTO "Fund" (${importColumnsSql})
+        VALUES ${Prisma.join(funds.map(fundValuesSql), ', ')}
+        ON CONFLICT ("classCode") DO UPDATE SET ${importUpdateSql}
+      `,
+    );
+    summary.created += created;
+    summary.updated += updated;
   }
   return summary;
 }
