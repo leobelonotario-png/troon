@@ -145,37 +145,40 @@ export async function importFundsCsv(prisma: PrismaClient, content: Buffer) {
     rejected: 0,
     errors: [] as { row: number; message: string }[],
   };
-  const batchSize = 250;
+  const batchSize = 100;
 
   for (let start = 0; start < rows.length; start += batchSize) {
     const batch = rows.slice(start, start + batchSize);
-    await prisma.$transaction(async (transaction) => {
-      for (const [offset, row] of batch.entries()) {
-        try {
-          const data = csvRecordToData(row);
-          const existing = await transaction.fund.findUnique({
-            where: { classCode: data.classCode },
-          });
-          if (existing) {
-            const { classCode, ...importData } = data;
-            await transaction.fund.update({
-              where: { classCode },
-              data: importData,
+    await prisma.$transaction(
+      async (transaction) => {
+        for (const [offset, row] of batch.entries()) {
+          try {
+            const data = csvRecordToData(row);
+            const existing = await transaction.fund.findUnique({
+              where: { classCode: data.classCode },
             });
-            summary.updated += 1;
-          } else {
-            await transaction.fund.create({ data });
-            summary.created += 1;
+            if (existing) {
+              const { classCode, ...importData } = data;
+              await transaction.fund.update({
+                where: { classCode },
+                data: importData,
+              });
+              summary.updated += 1;
+            } else {
+              await transaction.fund.create({ data });
+              summary.created += 1;
+            }
+          } catch (error) {
+            summary.rejected += 1;
+            summary.errors.push({
+              row: start + offset + 2,
+              message: error instanceof Error ? error.message : 'Invalid CSV row.',
+            });
           }
-        } catch (error) {
-          summary.rejected += 1;
-          summary.errors.push({
-            row: start + offset + 2,
-            message: error instanceof Error ? error.message : 'Invalid CSV row.',
-          });
         }
-      }
-    });
+      },
+      { maxWait: 10_000, timeout: 30_000 },
+    );
   }
   return summary;
 }

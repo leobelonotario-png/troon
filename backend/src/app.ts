@@ -79,6 +79,17 @@ function listFunds(prisma: PrismaClient, approvedOnly: boolean) {
   };
 }
 
+function listAllApprovedFunds(prisma: PrismaClient) {
+  return async (request: Request, response: Response) => {
+    const where = buildWhere(request.query, true);
+    const [items, total] = await Promise.all([
+      prisma.fund.findMany({ where, orderBy: { name: 'asc' } }),
+      prisma.fund.count({ where }),
+    ]);
+    response.json({ items, total });
+  };
+}
+
 function getLiquidViewCounts(prisma: PrismaClient) {
   const base = { validated: true, origin: 'APPROVED' as const, fundType: 'LIQUID' as const };
   return async (_request: Request, response: Response) => {
@@ -110,7 +121,7 @@ export function createApp(prisma = new PrismaClient()) {
     response.json({ status: 'ok' });
   });
   app.get('/fund-taxonomy', (_request, response) => response.json(getTaxonomyResponse()));
-  app.get('/funds', listFunds(prisma, true));
+  app.get('/funds', listAllApprovedFunds(prisma));
   app.get('/funds/liquid-view-counts', getLiquidViewCounts(prisma));
   app.get('/admin/funds', listFunds(prisma, false));
 

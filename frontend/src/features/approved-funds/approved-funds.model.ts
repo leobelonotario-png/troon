@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { getLiquidViewCounts, listApprovedFunds } from '../../shared/repositories/api.repositories';
 import type { LiquidView } from '../../shared/repositories/api.repositories';
 import type { Fund, FundType, Taxonomy } from '../../shared/domain/fund.types';
@@ -16,30 +16,9 @@ export function useApprovedFundsModel(type: FundType, taxonomy: Taxonomy): Appro
   const [activeClassId, setActiveClassId] = useState('');
   const [editingFund, setEditingFund] = useState<Fund | null>(null);
   const [isFormOpen, setFormOpen] = useState(false);
-  const pageFilters =
-    type === 'liquido'
-      ? liquidView === 'offshore'
-        ? { type, shore: 'Offshore' as const }
-        : liquidView === 'prev'
-          ? { type, recommended: true }
-          : { type, shore: 'Onshore' as const, recommended: false }
-      : { type };
-  const visibleClasses = activeClassId
-    ? taxonomy[type].filter((taxonomyClass) => taxonomyClass.id === activeClassId)
-    : taxonomy[type];
-  const subclassQueries = useQueries({
-    queries: visibleClasses.flatMap((taxonomyClass) =>
-      taxonomyClass.subtypes.map((subtype) => ({
-        queryKey: ['funds', 'approved', type, liquidView, taxonomyClass.id, subtype.id],
-        queryFn: () =>
-          listApprovedFunds({
-            ...pageFilters,
-            assetClass: taxonomyClass.id,
-            subtype: subtype.id,
-            pagination: false,
-          }),
-      })),
-    ),
+  const approvedFundsQuery = useQuery({
+    queryKey: ['funds', 'approved'],
+    queryFn: listApprovedFunds,
   });
   const liquidViewCountsQuery = useQuery({
     queryKey: ['funds', 'approved', 'liquid-view-counts'],
@@ -48,20 +27,23 @@ export function useApprovedFundsModel(type: FundType, taxonomy: Taxonomy): Appro
   });
   const funds = useMemo(
     () =>
-      subclassQueries.reduce<Fund[]>((results, query) => {
-        for (const fund of query.data?.funds ?? []) {
-          const haystack = `${fund.name} ${fund.gestora} ${fund.cnpj}`.toLowerCase();
-          if (
-            (!filters.q || haystack.includes(filters.q.toLowerCase())) &&
-            (!filters.sub || fund.sub === filters.sub) &&
-            (!filters.liq || fund.liq === filters.liq) &&
-            (!filters.trib || fund.trib === filters.trib)
-          )
-            results.push(fund);
-        }
-        return results;
-      }, []),
-    [filters, subclassQueries],
+      (approvedFundsQuery.data?.funds ?? []).filter((fund) => {
+        const haystack = `${fund.name} ${fund.gestora} ${fund.cnpj}`.toLowerCase();
+        const matchesLiquidView =
+          type !== 'liquido' ||
+          (liquidView === 'offshore' && fund.shore === 'Offshore') ||
+          (liquidView === 'prev' && fund.prev) ||
+          (liquidView === 'onshore' && fund.shore === 'Onshore' && !fund.prev);
+        return (
+          fund.type === type &&
+          matchesLiquidView &&
+          (!filters.q || haystack.includes(filters.q.toLowerCase())) &&
+          (!filters.sub || fund.sub === filters.sub) &&
+          (!filters.liq || fund.liq === filters.liq) &&
+          (!filters.trib || fund.trib === filters.trib)
+        );
+      }),
+    [approvedFundsQuery.data, filters, liquidView, type],
   );
   return {
     type,

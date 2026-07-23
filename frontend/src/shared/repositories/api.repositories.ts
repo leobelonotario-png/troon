@@ -110,25 +110,8 @@ export async function listFunds(): Promise<Fund[]> {
   const data = await request<{ items: ApiFund[] }>('/admin/funds?pageSize=100');
   return data.items.map(toFund);
 }
-export async function listApprovedFunds(
-  filters: {
-    type?: FundType;
-    shore?: Fund['shore'];
-    recommended?: boolean;
-    assetClass?: string;
-    subtype?: string;
-    pagination?: false;
-  } = {},
-): Promise<{ funds: Fund[] }> {
-  const params = new URLSearchParams(
-    filters.pagination === false ? { pagination: 'false' } : { pageSize: '100' },
-  );
-  if (filters.type) params.set('fundType', typeToApi[filters.type]);
-  if (filters.shore) params.set('domicile', filters.shore === 'Offshore' ? 'OFFSHORE' : 'ONSHORE');
-  if (filters.recommended !== undefined) params.set('recommended', String(filters.recommended));
-  if (filters.assetClass) params.set('assetClass', filters.assetClass);
-  if (filters.subtype) params.set('subtype', filters.subtype);
-  const data = await request<ApiFundList>(`/funds?${params}`);
+export async function listApprovedFunds(): Promise<{ funds: Fund[] }> {
+  const data = await request<ApiFundList>('/funds');
   return { funds: data.items.map(toFund) };
 }
 export const getLiquidViewCounts = () => request<LiquidViewCounts>('/funds/liquid-view-counts');
