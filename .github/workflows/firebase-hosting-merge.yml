@@ -38,6 +38,6 @@ jobs:
       - name: Build backend
         run: npm run build --workspace=backend
       - name: Deploy backend to Railway
-        run: npx railway@latest up backend --path-as-root --service backend --ci
+        run: npx @railway/cli@latest up backend --path-as-root --service backend --ci
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
