@@ -22,3 +22,16 @@ jobs:
           channelId: live
           projectId: troon-teste
           entryPoint: frontend
+
+  deploy_backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install backend dependencies
+        run: npm ci --workspace=backend --include-workspace-root=false
+      - name: Build backend
+        run: npm run build --workspace=backend
+      - name: Deploy backend to Railway
+        run: npx railway@latest up backend --path-as-root --service backend --ci
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
