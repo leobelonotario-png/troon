@@ -7,10 +7,45 @@ import {
   Select,
   Textarea,
 } from '../../../../shared/components/ui';
+import { useEffect, useState } from 'react';
 import type { FundDraft } from '../../../../shared/domain/fund.types';
 import type { FundFormViewProps } from './fund-form-modal.types';
 
 const numberKeys = new Set<keyof FundDraft>(['notaQuant', 'notaFinal', 'ret', 'vol']);
+
+const formatDecimal = (value: number | null) =>
+  value === null
+    ? ''
+    : value.toLocaleString('pt-BR', { useGrouping: false, maximumFractionDigits: 10 });
+
+function DecimalInput({
+  value,
+  onValueChange,
+}: {
+  value: number | null;
+  onValueChange(value: string): void;
+}) {
+  const [raw, setRaw] = useState(() => formatDecimal(value));
+
+  useEffect(() => {
+    setRaw(formatDecimal(value));
+  }, [value]);
+
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={raw}
+      onChange={(event) => {
+        const next = event.target.value;
+        if (!/^-?\d*(?:[,.]\d*)?$/.test(next)) return;
+        setRaw(next);
+        if (!['-', ',', '.', '-,', '-.'].includes(next)) onValueChange(next);
+      }}
+      onBlur={() => setRaw(formatDecimal(value))}
+    />
+  );
+}
 export function FundFormModalView(props: FundFormViewProps) {
   const value = (key: keyof FundDraft): string | number => {
     const item = props.draft[key];
@@ -201,32 +236,22 @@ export function FundFormModalView(props: FundFormViewProps) {
           Fundo Prev
         </label>
         <Field label="★ Nota Quant">
-          <Input
-            inputMode="decimal"
-            value={value('notaQuant')}
-            onChange={(e) => change('notaQuant', e.target.value)}
+          <DecimalInput
+            value={props.draft.notaQuant}
+            onValueChange={(raw) => change('notaQuant', raw)}
           />
         </Field>
         <Field label="★ Nota Final">
-          <Input
-            inputMode="decimal"
-            value={value('notaFinal')}
-            onChange={(e) => change('notaFinal', e.target.value)}
+          <DecimalInput
+            value={props.draft.notaFinal}
+            onValueChange={(raw) => change('notaFinal', raw)}
           />
         </Field>
         <Field label="Retorno desde o início (% a.a.) *" error={props.errors.ret}>
-          <Input
-            inputMode="decimal"
-            value={value('ret')}
-            onChange={(e) => change('ret', e.target.value)}
-          />
+          <DecimalInput value={props.draft.ret} onValueChange={(raw) => change('ret', raw)} />
         </Field>
         <Field label="Vol desde o início (% a.a.) *" error={props.errors.vol}>
-          <Input
-            inputMode="decimal"
-            value={value('vol')}
-            onChange={(e) => change('vol', e.target.value)}
-          />
+          <DecimalInput value={props.draft.vol} onValueChange={(raw) => change('vol', raw)} />
         </Field>
         <Field label="Observações">
           <Textarea value={value('obs')} onChange={(e) => change('obs', e.target.value)} />
