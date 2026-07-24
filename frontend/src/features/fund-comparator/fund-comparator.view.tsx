@@ -3,6 +3,7 @@ import type { ComparisonEntity, FundComparatorViewProps } from './fund-comparato
 import { pairKey } from './fund-comparator.model';
 import { RiskReturnChart } from './components/risk-return-chart';
 import { CorrelationChart } from './components/correlation-chart';
+import { Button, Checkbox, Input, Select } from '../../shared/components/ui';
 
 const Group = ({
   title,
@@ -20,10 +21,9 @@ const Group = ({
     {entities.length ? (
       entities.map((entity) => (
         <label key={entity.id} className="flex items-center gap-2 py-1 text-sm">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={selected.includes(entity.id)}
-            onChange={(event) => onToggle(entity.id, event.target.checked)}
+            onCheckedChange={(checked) => onToggle(entity.id, checked === true)}
           />
           <i className="size-2.5 rounded-full" style={{ backgroundColor: entity.color }} />{' '}
           <span>{entity.name}</span>
@@ -58,7 +58,7 @@ export function FundComparatorView(props: FundComparatorViewProps) {
             <h3>Fundo de referência</h3>
             <label>
               Fundo
-              <select
+              <Select
                 value={props.comparison.refId ?? ''}
                 onChange={(event) => props.onReferenceChange(event.target.value)}
               >
@@ -68,25 +68,25 @@ export function FundComparatorView(props: FundComparatorViewProps) {
                     {fund.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </label>
             <label>
               Título do comparativo
-              <input
+              <Input
                 value={props.comparison.titulo}
                 onChange={(event) => props.onFieldChange('titulo', event.target.value)}
               />
             </label>
             <label>
               Fonte
-              <input
+              <Input
                 value={props.comparison.fonte}
                 onChange={(event) => props.onFieldChange('fonte', event.target.value)}
               />
             </label>
             <label>
               Período
-              <input
+              <Input
                 value={props.comparison.periodo}
                 onChange={(event) => props.onFieldChange('periodo', event.target.value)}
               />
@@ -97,16 +97,16 @@ export function FundComparatorView(props: FundComparatorViewProps) {
             <div className="grid gap-3 sm:grid-cols-3">
               <label>
                 Aba
-                <select value={props.filters.type} onChange={onFilter('type')}>
+                <Select value={props.filters.type} onChange={onFilter('type')}>
                   <option value="">Todas as abas</option>
                   <option value="liquido">Fundos líquidos</option>
                   <option value="iliquido">Fundos ilíquidos</option>
                   <option value="listado">Fundos listados</option>
-                </select>
+                </Select>
               </label>
               <label>
                 Classe
-                <select
+                <Select
                   value={props.filters.classe}
                   onChange={onFilter('classe')}
                   disabled={!props.filters.type}
@@ -117,11 +117,11 @@ export function FundComparatorView(props: FundComparatorViewProps) {
                       {taxonomyClass.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
               <label>
                 Subclasse
-                <select
+                <Select
                   value={props.filters.sub}
                   onChange={onFilter('sub')}
                   disabled={!props.filters.classe}
@@ -132,22 +132,16 @@ export function FundComparatorView(props: FundComparatorViewProps) {
                       {subtype.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </label>
             </div>
             <div className="mt-3 flex gap-2">
-              <button
-                className="rounded border border-border bg-secondary px-3 py-1.5 text-sm text-secondary-foreground"
-                onClick={() => props.onToggleFiltered(true)}
-              >
+              <Button variant="secondary" size="sm" onClick={() => props.onToggleFiltered(true)}>
                 Selecionar filtrados
-              </button>
-              <button
-                className="rounded border border-border bg-secondary px-3 py-1.5 text-sm text-secondary-foreground"
-                onClick={() => props.onToggleFiltered(false)}
-              >
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => props.onToggleFiltered(false)}>
                 Limpar filtrados
-              </button>
+              </Button>
             </div>
             <Group
               title="Fundos aprovados"
@@ -164,12 +158,13 @@ export function FundComparatorView(props: FundComparatorViewProps) {
             <div className="mt-4 border-t border-border pt-4">
               <div className="flex items-center justify-between gap-2">
                 <h4>Fundos da indústria</h4>
-                <button
-                  className="rounded border border-border bg-secondary px-3 py-1.5 text-sm text-secondary-foreground"
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => props.onToggleIndustry(!selectedIndustry)}
                 >
                   {selectedIndustry ? 'Desmarcar todos' : 'Selecionar todos'}
-                </button>
+                </Button>
               </div>
               <Group
                 title=""
@@ -193,7 +188,7 @@ export function FundComparatorView(props: FundComparatorViewProps) {
                         />
                         {entity.name}
                       </span>
-                      <input
+                      <Input
                         aria-label={`Correlação entre ${props.reference?.name} e ${entity.name}`}
                         inputMode="decimal"
                         value={props.correlations[pairKey(props.reference!.id, entity.id)] ?? ''}

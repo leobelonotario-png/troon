@@ -8,6 +8,7 @@ import type {
 export interface FundFormModalProps {
   fund: Fund | null;
   initialType: FundType;
+  initialClassification: { classe: string; sub: string } | null;
   onClose(): void;
   onSaved(): void;
 }

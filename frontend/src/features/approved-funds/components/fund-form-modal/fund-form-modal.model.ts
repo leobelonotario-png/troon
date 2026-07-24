@@ -10,15 +10,18 @@ import type { Fund, FundDraft, FundType, Taxonomy } from '../../../../shared/dom
 import type { FundFormModalProps, FundFormViewProps } from './fund-form-modal.types';
 
 const emptyTaxonomy: Taxonomy = { liquido: [], iliquido: [], listado: [] };
-const newDraft = (type: FundType, taxonomy: Taxonomy): FundDraft => ({
+const newDraft = (
+  type: FundType,
+  initialClassification: { classe: string; sub: string } | null,
+): FundDraft => ({
   origin: 'aprovado',
   name: '',
   cnpj: '',
   shore: 'Onshore',
   type,
   status: 'Aberto',
-  classe: taxonomy[type][0]?.id ?? '',
-  sub: taxonomy[type][0]?.subtypes[0]?.id ?? '',
+  classe: initialClassification?.classe ?? '',
+  sub: initialClassification?.sub ?? '',
   bench: '',
   liq: '',
   trib: '',
@@ -36,6 +39,7 @@ const newDraft = (type: FundType, taxonomy: Taxonomy): FundDraft => ({
 export function useFundFormModalModel({
   fund,
   initialType,
+  initialClassification,
   onClose,
   onSaved,
 }: FundFormModalProps): FundFormViewProps {
@@ -56,7 +60,9 @@ export function useFundFormModalModel({
       onSaved();
     },
   });
-  const [draft, setDraft] = useState<FundDraft>(fund ?? newDraft(initialType, taxonomy));
+  const [draft, setDraft] = useState<FundDraft>(
+    fund ?? newDraft(initialType, initialClassification),
+  );
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState<Fund[]>([]);
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
@@ -89,12 +95,10 @@ export function useFundFormModalModel({
     setDraft((current) => {
       const next = { ...current, [key]: value } as FundDraft;
       if (key === 'type') {
-        const type = value as FundType;
-        next.classe = taxonomy[type][0]?.id ?? '';
-        next.sub = taxonomy[type][0]?.subtypes[0]?.id ?? '';
+        next.classe = '';
+        next.sub = '';
       }
-      if (key === 'classe')
-        next.sub = taxonomy[next.type].find((item) => item.id === value)?.subtypes[0]?.id ?? '';
+      if (key === 'classe') next.sub = '';
       return next;
     });
   const onSave = () => {
@@ -112,7 +116,7 @@ export function useFundFormModalModel({
     const selected = searchResults.find((result) => result.id === selectedFundId);
     if (!selected) return;
     const { color: _color, updatedAt: _updatedAt, ...selectedDraft } = selected;
-    setDraft({ ...selectedDraft, validated: false });
+    setDraft({ ...selectedDraft, ...initialClassification, validated: false });
   };
   return {
     draft,
@@ -134,7 +138,7 @@ export function useFundFormModalModel({
       onConfirm: confirmSelection,
     },
     onBackToSearch: () => {
-      setDraft(newDraft(initialType, taxonomy));
+      setDraft(newDraft(initialType, initialClassification));
       setSelectedFundId(null);
     },
     onChange,

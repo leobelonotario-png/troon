@@ -1,4 +1,12 @@
-import { Button, Field, Input, Modal, Select } from '../../../../shared/components/ui';
+import {
+  Button,
+  Checkbox,
+  Field,
+  Input,
+  Modal,
+  Select,
+  Textarea,
+} from '../../../../shared/components/ui';
 import type { FundDraft } from '../../../../shared/domain/fund.types';
 import type { FundFormViewProps } from './fund-form-modal.types';
 
@@ -20,7 +28,7 @@ export function FundFormModalView(props: FundFormViewProps) {
   if (props.isSelectingFund) {
     const search = props.search;
     return (
-      <Modal title="Adicionar fundo" onClose={props.onClose}>
+      <Modal title="Adicionar fundo" onClose={props.onClose} contentClassName="overflow-hidden">
         <p className="mb-4 text-sm text-muted-foreground">
           Busque pelo nome ou CNPJ do fundo para iniciar o cadastro.
         </p>
@@ -40,27 +48,49 @@ export function FundFormModalView(props: FundFormViewProps) {
         </div>
         {search.error && <p className="mt-3 text-sm text-destructive">{search.error}</p>}
         {search.results.length > 0 && (
-          <div className="mt-4 space-y-2" role="radiogroup" aria-label="Fundos encontrados">
-            {search.results.map((fund) => (
-              <label
-                className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 ${search.selectedId === fund.id ? 'border-primary bg-primary/5' : 'border-border'}`}
-                key={fund.id}
-              >
-                <input
-                  type="radio"
-                  name="fund"
-                  checked={search.selectedId === fund.id}
-                  onChange={() => search.onSelect(fund.id)}
-                />
-                <span>
-                  <b className="block text-sm">{fund.name}</b>
-                  <span className="text-xs text-muted-foreground">
-                    {fund.cnpj || 'CNPJ não informado'}
-                    {fund.gestora ? ` · ${fund.gestora}` : ''}
-                  </span>
-                </span>
-              </label>
-            ))}
+          <div className="mt-4 max-h-72 overflow-y-auto rounded-md border border-border">
+            <table
+              className="w-full border-collapse text-sm"
+              role="radiogroup"
+              aria-label="Fundos encontrados"
+            >
+              <thead className="sticky top-0 bg-card text-left text-xs text-muted-foreground">
+                <tr>
+                  <th className="w-10 p-3">
+                    <span className="sr-only">Selecionar</span>
+                  </th>
+                  <th className="p-3">Fundo</th>
+                  <th className="p-3">CNPJ</th>
+                  <th className="p-3">Gestora</th>
+                </tr>
+              </thead>
+              <tbody>
+                {search.results.map((fund) => (
+                  <tr className={search.selectedId === fund.id ? 'bg-primary/5' : ''} key={fund.id}>
+                    <td className="p-3 pr-0">
+                      <label className="flex cursor-pointer items-center">
+                        <input
+                          type="radio"
+                          name="fund"
+                          checked={search.selectedId === fund.id}
+                          onChange={() => search.onSelect(fund.id)}
+                        />
+                        <span className="sr-only">
+                          <b className="block text-sm">{fund.name}</b>
+                          <span className="text-xs text-muted-foreground">
+                            {fund.cnpj || 'CNPJ não informado'}
+                            {fund.gestora ? ` · ${fund.gestora}` : ''}
+                          </span>
+                        </span>
+                      </label>
+                    </td>
+                    <td className="p-3 font-semibold">{fund.name}</td>
+                    <td className="p-3 text-muted-foreground">{fund.cnpj || '—'}</td>
+                    <td className="p-3 text-muted-foreground">{fund.gestora || '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
         {!search.isLoading && !search.error && search.results.length === 0 && (
@@ -122,6 +152,7 @@ export function FundFormModalView(props: FundFormViewProps) {
         </Field>
         <Field label="Classe / Setor / Tipo *" error={props.errors.classe}>
           <Select value={value('classe')} onChange={(e) => change('classe', e.target.value)}>
+            <option value="">Selecione a classe / setor / tipo</option>
             {props.taxonomy[props.draft.type].map((item) => (
               <option key={item.id} value={item.id}>
                 {item.label}
@@ -130,7 +161,12 @@ export function FundFormModalView(props: FundFormViewProps) {
           </Select>
         </Field>
         <Field label="Subclasse / Subsetor *" error={props.errors.sub}>
-          <Select value={value('sub')} onChange={(e) => change('sub', e.target.value)}>
+          <Select
+            value={value('sub')}
+            onChange={(e) => change('sub', e.target.value)}
+            disabled={!props.draft.classe}
+          >
+            <option value="">Selecione a subclasse / subsetor</option>
             {props.subclasses.map((subtype) => (
               <option key={subtype.id} value={subtype.id}>
                 {subtype.label}
@@ -158,11 +194,10 @@ export function FundFormModalView(props: FundFormViewProps) {
           />
         </Field>
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={props.draft.prev}
-            onChange={(e) => change('prev', e.target.checked)}
-          />{' '}
+            onCheckedChange={(checked) => change('prev', checked === true)}
+          />
           Fundo Prev
         </label>
         <Field label="★ Nota Quant">
@@ -194,7 +229,7 @@ export function FundFormModalView(props: FundFormViewProps) {
           />
         </Field>
         <Field label="Observações">
-          <textarea value={value('obs')} onChange={(e) => change('obs', e.target.value)} />
+          <Textarea value={value('obs')} onChange={(e) => change('obs', e.target.value)} />
         </Field>
       </div>
       <div className="mt-5 flex items-center justify-between gap-3">

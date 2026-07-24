@@ -115,8 +115,14 @@ export async function listApprovedFunds(): Promise<{ funds: Fund[] }> {
   return { funds: data.items.map(toFund) };
 }
 export const getLiquidViewCounts = () => request<LiquidViewCounts>('/funds/liquid-view-counts');
+
+function normalizeSearchQuery(query: string) {
+  const trimmed = query.trim();
+  return /^[\d./\-\s]+$/.test(trimmed) ? trimmed.replace(/\D/g, '') : trimmed;
+}
+
 export async function searchFunds(query: string): Promise<Fund[]> {
-  const params = new URLSearchParams({ search: query, pageSize: '20' });
+  const params = new URLSearchParams({ search: normalizeSearchQuery(query), pageSize: '20' });
   const data = await request<{ items: ApiFund[] }>(`/admin/funds?${params}`);
   return data.items.reduce<Fund[]>((results, item, position) => {
     const fund = toFund(item, position);

@@ -15,6 +15,10 @@ export function useApprovedFundsModel(type: FundType, taxonomy: Taxonomy): Appro
   const [liquidView, setLiquidView] = useState<LiquidView>('onshore');
   const [activeClassId, setActiveClassId] = useState('');
   const [editingFund, setEditingFund] = useState<Fund | null>(null);
+  const [initialClassification, setInitialClassification] = useState<{
+    classe: string;
+    sub: string;
+  } | null>(null);
   const [isFormOpen, setFormOpen] = useState(false);
   const approvedFundsQuery = useQuery({
     queryKey: ['funds', 'approved'],
@@ -56,6 +60,7 @@ export function useApprovedFundsModel(type: FundType, taxonomy: Taxonomy): Appro
     activeClassId,
     isFormOpen,
     editingFund,
+    initialClassification,
     onFiltersChange: setFilters,
     onLiquidViewChange: setLiquidView,
     onClassChange: (classId) => {
@@ -64,10 +69,17 @@ export function useApprovedFundsModel(type: FundType, taxonomy: Taxonomy): Appro
     },
     onAdd: () => {
       setEditingFund(null);
+      setInitialClassification(null);
+      setFormOpen(true);
+    },
+    onAddToSubclass: (classe, sub) => {
+      setEditingFund(null);
+      setInitialClassification({ classe, sub });
       setFormOpen(true);
     },
     onEdit: (fund) => {
       setEditingFund(fund);
+      setInitialClassification(null);
       setFormOpen(true);
     },
     onCloseForm: () => setFormOpen(false),

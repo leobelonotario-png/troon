@@ -1,5 +1,17 @@
 import type { Fund } from '../../shared/domain/fund.types';
-import { Button, EmptyState, Input, Select } from '../../shared/components/ui';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Button,
+  EmptyState,
+  Input,
+  Select,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from '../../shared/components/ui';
 import { FundFormModal } from './components/fund-form-modal';
 import type { ApprovedFundsViewProps, FundFilters } from './approved-funds.types';
 function FundCard({
@@ -12,10 +24,10 @@ function FundCard({
   onEdit(fund: Fund): void;
 }) {
   return (
-    <button
+    <Button
       type="button"
-      className="flex gap-2.5 rounded-md border border-border border-l-[5px] bg-card p-2.5 text-left shadow-sm transition-shadow hover:shadow-md"
-      style={{ borderLeftColor: fund.color }}
+      variant="secondary"
+      className="h-auto w-full justify-start gap-2.5 border-l-[5px] border-l-primary p-2.5 text-left shadow-sm transition-shadow hover:shadow-md"
       onClick={() => onEdit(fund)}
     >
       <b className="text-lg leading-none text-primary">{rank ? `${rank}º` : '–'}</b>
@@ -41,7 +53,7 @@ function FundCard({
           )}
         </span>
       </span>
-    </button>
+    </Button>
   );
 }
 export function ApprovedFundsView(props: ApprovedFundsViewProps) {
@@ -84,47 +96,43 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
         <div className="mb-5 flex flex-wrap items-center gap-3">
           <h1 className="mr-auto text-xl font-bold">{props.title}</h1>
           {props.type === 'liquido' && (
-            <div
+            <Tabs
+              value={props.liquidView}
+              onValueChange={(value) => props.onLiquidViewChange(value as typeof props.liquidView)}
               className="inline-flex rounded-md border border-border bg-card p-1"
               aria-label="Visão de fundos líquidos"
             >
-              {(['onshore', 'offshore', 'prev'] as const).map((view) => (
-                <button
-                  type="button"
-                  className={`rounded px-3 py-1.5 text-sm ${props.liquidView === view ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
-                  onClick={() => props.onLiquidViewChange(view)}
-                  key={view}
-                >
-                  {view === 'prev' ? 'Prev' : view[0].toUpperCase() + view.slice(1)} (
-                  {props.liquidViewCounts?.[view] ?? '–'})
-                </button>
-              ))}
-            </div>
+              <TabsList className="rounded-md border border-border bg-card p-1">
+                {(['onshore', 'offshore', 'prev'] as const).map((view) => (
+                  <TabsTrigger
+                    value={view}
+                    className="rounded border-0 px-3 py-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    key={view}
+                  >
+                    {view === 'prev' ? 'Prev' : view[0].toUpperCase() + view.slice(1)} (
+                    {props.liquidViewCounts?.[view] ?? '–'})
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           )}
           <Button onClick={props.onAdd}>+ Adicionar fundo</Button>
         </div>
-        <div
+        <Tabs
+          value={props.activeClassId || 'all'}
+          onValueChange={(value) => props.onClassChange(value === 'all' ? '' : value)}
           className="mb-4 flex gap-1 overflow-x-auto border-b border-border"
           aria-label="Classes de ativos"
         >
-          <button
-            type="button"
-            className={`whitespace-nowrap border-b-2 px-3 py-2 text-sm ${!props.activeClassId ? 'border-primary font-semibold text-primary' : 'border-transparent text-muted-foreground'}`}
-            onClick={() => props.onClassChange('')}
-          >
-            Todas as classes
-          </button>
-          {classes.map((taxonomyClass) => (
-            <button
-              type="button"
-              className={`whitespace-nowrap border-b-2 px-3 py-2 text-sm ${props.activeClassId === taxonomyClass.id ? 'border-primary font-semibold text-primary' : 'border-transparent text-muted-foreground'}`}
-              onClick={() => props.onClassChange(taxonomyClass.id)}
-              key={taxonomyClass.id}
-            >
-              {taxonomyClass.label}
-            </button>
-          ))}
-        </div>
+          <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto rounded-none">
+            <TabsTrigger value="all">Todas as classes</TabsTrigger>
+            {classes.map((taxonomyClass) => (
+              <TabsTrigger value={taxonomyClass.id} key={taxonomyClass.id}>
+                {taxonomyClass.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
         <div className="mb-6 grid gap-2 md:grid-cols-3 xl:grid-cols-5">
           <Input
             aria-label="Buscar fundo"
@@ -164,45 +172,62 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
           </Button>
         </div>
         {grouped.length ? (
-          grouped.map((group) => (
-            <section className="mb-8" key={group.id}>
-              <h2>
-                {group.label} (
-                {group.groups.reduce((total, subgroup) => total + subgroup.funds.length, 0)})
-              </h2>
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {group.groups.map(({ id, label, funds }) => {
-                  const ranked = [...funds]
-                    .filter((fund) => fund.notaQuant !== null)
-                    .sort((a, b) => (b.notaQuant ?? 0) - (a.notaQuant ?? 0));
-                  return (
-                    <section className="rounded-md border border-border bg-card p-3" key={id}>
-                      <h3 className="mb-3 border-b border-border pb-2">{label}</h3>
-                      <div className="flex flex-col gap-2.5">
-                        {funds.length ? (
-                          funds.map((fund) => (
-                            <FundCard
-                              key={fund.id}
-                              fund={fund}
-                              rank={
-                                ranked.findIndex((rankedFund) => rankedFund.id === fund.id) + 1 ||
-                                null
-                              }
-                              onEdit={props.onEdit}
-                            />
-                          ))
-                        ) : (
-                          <p className="py-3 text-center text-sm italic text-muted-foreground">
-                            Nenhum fundo nesta subclasse.
-                          </p>
-                        )}
-                      </div>
-                    </section>
-                  );
-                })}
-              </div>
-            </section>
-          ))
+          <Accordion
+            type="multiple"
+            defaultValue={grouped.map((group) => group.id)}
+            className="space-y-4"
+          >
+            {grouped.map((group) => (
+              <AccordionItem value={group.id} key={group.id}>
+                <AccordionTrigger>
+                  {group.label} (
+                  {group.groups.reduce((total, subgroup) => total + subgroup.funds.length, 0)})
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 mt-2">
+                    {group.groups.map(({ id, label, funds }) => {
+                      const ranked = [...funds]
+                        .filter((fund) => fund.notaQuant !== null)
+                        .sort((a, b) => (b.notaQuant ?? 0) - (a.notaQuant ?? 0));
+                      return (
+                        <section className="rounded-md border border-border bg-card p-3" key={id}>
+                          <div className="mb-3 flex items-center justify-between gap-2 border-b border-border pb-2">
+                            <h3>{label}</h3>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => props.onAddToSubclass(group.id, id)}
+                            >
+                              + Adicionar
+                            </Button>
+                          </div>
+                          <div className="flex flex-col gap-2.5">
+                            {funds.length ? (
+                              funds.map((fund) => (
+                                <FundCard
+                                  key={fund.id}
+                                  fund={fund}
+                                  rank={
+                                    ranked.findIndex((rankedFund) => rankedFund.id === fund.id) +
+                                      1 || null
+                                  }
+                                  onEdit={props.onEdit}
+                                />
+                              ))
+                            ) : (
+                              <p className="py-3 text-center text-sm italic text-muted-foreground">
+                                Nenhum fundo nesta subclasse.
+                              </p>
+                            )}
+                          </div>
+                        </section>
+                      );
+                    })}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         ) : (
           <EmptyState>Nenhum fundo encontrado para os filtros selecionados.</EmptyState>
         )}
@@ -211,6 +236,7 @@ export function ApprovedFundsView(props: ApprovedFundsViewProps) {
         <FundFormModal
           fund={props.editingFund}
           initialType={props.type}
+          initialClassification={props.initialClassification}
           onClose={props.onCloseForm}
           onSaved={props.onSaved}
         />

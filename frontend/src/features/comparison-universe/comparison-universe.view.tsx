@@ -1,4 +1,5 @@
 import type { FormEvent } from 'react';
+import { Button, Checkbox, Input, Modal } from '../../shared/components/ui';
 import type { ComparisonUniverseViewProps } from './comparison-universe.types';
 
 const pct = (value: number | null) =>
@@ -19,12 +20,7 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
       <section className="mb-5 rounded-lg border border-border bg-card p-4 shadow-sm">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3>Índices / Benchmarks</h3>
-          <button
-            className="rounded bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
-            onClick={props.onOpenNewIndex}
-          >
-            Adicionar índice
-          </button>
+          <Button onClick={props.onOpenNewIndex}>Adicionar índice</Button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm [&_td]:border-b [&_td]:border-border [&_td]:p-2 [&_th]:border-b [&_th]:border-border [&_th]:p-2 [&_th]:text-left">
@@ -55,27 +51,28 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
                   <td>{date(index.updatedAt)}</td>
                   <td>
                     <label className="inline-flex items-center">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={index.dashed}
-                        onChange={() => props.onToggleDashed(index)}
+                        onCheckedChange={() => props.onToggleDashed(index)}
                         aria-label={`Exibir ${index.name} como linha tracejada`}
                       />
                     </label>
                   </td>
                   <td className="flex gap-2">
-                    <button
-                      className="rounded border border-border bg-secondary px-2 py-1 text-xs text-secondary-foreground"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => props.onOpenEditIndex(index)}
                     >
                       Editar
-                    </button>
-                    <button
-                      className="rounded border border-destructive/30 bg-destructive/10 px-2 py-1 text-xs text-destructive"
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
                       onClick={() => props.onRemoveIndex(index.id)}
                     >
                       Excluir
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -91,12 +88,7 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
       <section className="rounded-lg border border-border bg-card p-4 shadow-sm">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3>Fundos da Indústria</h3>
-          <button
-            className="rounded bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
-            onClick={props.onAddIndustryFund}
-          >
-            Adicionar fundo da indústria
-          </button>
+          <Button onClick={props.onAddIndustryFund}>Adicionar fundo da indústria</Button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm [&_td]:border-b [&_td]:border-border [&_td]:p-2 [&_th]:border-b [&_th]:border-border [&_th]:p-2 [&_th]:text-left">
@@ -126,12 +118,13 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
                   <td className="text-right">{pct(fund.vol)}</td>
                   <td>{date(fund.updatedAt)}</td>
                   <td>
-                    <button
-                      className="rounded border border-border bg-secondary px-2 py-1 text-xs text-secondary-foreground"
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => props.onEditIndustryFund(fund)}
                     >
                       Editar
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -145,16 +138,11 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
         </div>
       </section>
       {props.isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 grid place-items-center bg-foreground/70 p-4"
-          role="presentation"
-          onMouseDown={props.onCloseModal}
-        >
+        <Modal onClose={props.onCloseModal}>
           <form
-            className="w-full max-w-md rounded-lg bg-card p-5 shadow-xl"
+            className="mx-auto grid w-full max-w-md gap-4"
             aria-labelledby="index-modal-title"
             onSubmit={submit}
-            onMouseDown={(event) => event.stopPropagation()}
           >
             <header>
               <h3 id="index-modal-title">
@@ -163,7 +151,7 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
             </header>
             <label>
               Nome
-              <input
+              <Input
                 autoFocus
                 value={props.form.name}
                 onChange={(event) => props.onFormChange({ name: event.target.value })}
@@ -172,7 +160,7 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
             <div className="grid gap-3 sm:grid-cols-2">
               <label>
                 Retorno a.a. (%)
-                <input
+                <Input
                   inputMode="decimal"
                   value={props.form.ret}
                   onChange={(event) => props.onFormChange({ ret: event.target.value })}
@@ -180,7 +168,7 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
               </label>
               <label>
                 Vol. a.a. (%)
-                <input
+                <Input
                   inputMode="decimal"
                   value={props.form.vol}
                   onChange={(event) => props.onFormChange({ vol: event.target.value })}
@@ -188,11 +176,10 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
               </label>
             </div>
             <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={props.form.dashed}
-                onChange={(event) => props.onFormChange({ dashed: event.target.checked })}
-              />{' '}
+                onCheckedChange={(checked) => props.onFormChange({ dashed: checked === true })}
+              />
               Exibir como linha tracejada
             </label>
             {props.formError && (
@@ -200,23 +187,14 @@ export function ComparisonUniverseView(props: ComparisonUniverseViewProps) {
                 {props.formError}
               </p>
             )}
-            <footer>
-              <button
-                type="button"
-                className="rounded border border-border bg-secondary px-3 py-2 text-sm text-secondary-foreground"
-                onClick={props.onCloseModal}
-              >
+            <footer className="flex justify-end gap-2">
+              <Button type="button" variant="secondary" onClick={props.onCloseModal}>
                 Cancelar
-              </button>
-              <button
-                className="rounded bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground"
-                type="submit"
-              >
-                Salvar índice
-              </button>
+              </Button>
+              <Button type="submit">Salvar índice</Button>
             </footer>
           </form>
-        </div>
+        </Modal>
       )}
     </section>
   );

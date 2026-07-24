@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Button as ShadcnButton, type ButtonProps } from '../ui/button';
 import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
+import { Checkbox } from '../ui/checkbox';
 import { Input } from '../ui/input';
 import { Select } from '../ui/select';
+import { Textarea } from '../ui/textarea';
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 
 export function Button({
   variant = 'primary',
@@ -35,21 +39,39 @@ export function Field({
   );
 }
 
-export { Input, Select };
+export {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Checkbox,
+  Input,
+  Select,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  Textarea,
+};
 
 export function Modal({
   title,
   children,
   onClose,
+  contentClassName,
 }: {
-  title: string;
+  title?: string;
   children: ReactNode;
   onClose(): void;
+  contentClassName?: string;
 }) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
-        <DialogTitle className="mb-5 block text-xl font-bold text-foreground">{title}</DialogTitle>
+      <DialogContent className={contentClassName}>
+        {title && (
+          <DialogTitle className="mb-5 block text-xl font-bold text-foreground">
+            {title}
+          </DialogTitle>
+        )}
         {children}
       </DialogContent>
     </Dialog>

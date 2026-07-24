@@ -1,4 +1,4 @@
-import { Button, Field, Input, Modal } from '../../../../shared/components/ui';
+import { Button, Field, Input, Modal, Textarea } from '../../../../shared/components/ui';
 import type { QuickUpdateViewProps } from './quick-update-modal.types';
 export function QuickUpdateModalView(props: QuickUpdateViewProps) {
   return (
@@ -11,8 +11,8 @@ export function QuickUpdateModalView(props: QuickUpdateViewProps) {
         />
       </Field>
       <Field label="Colar do Excel: CNPJ ou Nome | Retorno | Vol">
-        <textarea
-          className="min-h-28 w-full rounded-md border border-input bg-card p-2 text-sm"
+        <Textarea
+          className="min-h-28"
           value={props.paste}
           onChange={(event) => props.onPasteChange(event.target.value)}
         />

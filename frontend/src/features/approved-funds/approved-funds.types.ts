@@ -17,10 +17,12 @@ export interface ApprovedFundsViewProps {
   activeClassId: string;
   isFormOpen: boolean;
   editingFund: Fund | null;
+  initialClassification: { classe: string; sub: string } | null;
   onFiltersChange(filters: FundFilters): void;
   onLiquidViewChange(view: LiquidView): void;
   onClassChange(classId: string): void;
   onAdd(): void;
+  onAddToSubclass(classId: string, subclassId: string): void;
   onEdit(fund: Fund): void;
   onCloseForm(): void;
   onSaved(): void;
