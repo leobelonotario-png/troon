@@ -23,9 +23,14 @@ export function AppView(props: AppViewProps) {
             <p className="m-0 mt-0.5 text-[13px] opacity-75">Dashboard Fundos Aprovados</p>
           </div>
         </div>
-        <Button variant="secondary" onClick={props.onQuickUpdateOpen}>
-          Atualização rápida
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={props.onQuickUpdateOpen}>
+            Atualização rápida
+          </Button>
+          <Button variant="secondary" onClick={props.onSignOut}>
+            Sair
+          </Button>
+        </div>
       </header>
       <Tabs
         value={props.activeTab}

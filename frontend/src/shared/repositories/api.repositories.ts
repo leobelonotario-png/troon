@@ -1,5 +1,6 @@
 import type { Comparison, Index } from '../domain/index.types';
 import type { Fund, FundDraft, FundType, Taxonomy } from '../domain/fund.types';
+import { getAccessToken, signOut } from './auth.repositories';
 
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 const colors = ['#5B9BD5', '#9E7BC9', '#E8965A', '#4FADAD', '#D97BA1', '#8FAF5C'];
@@ -28,11 +29,17 @@ type ApiFundList = {
 };
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = await getAccessToken();
   const response = await fetch(`${apiUrl}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...init?.headers,
+    },
     ...init,
   });
   if (!response.ok) {
+    if (response.status === 401) void signOut();
     const body = (await response.json().catch(() => null)) as { error?: string } | null;
     throw new Error(body?.error ?? 'Não foi possível concluir a solicitação.');
   }
@@ -140,10 +147,16 @@ export async function saveFund(draft: FundDraft): Promise<Fund> {
 export const removeFund = (id: string) => request<void>(`/admin/funds/${id}`, { method: 'DELETE' });
 export const updateFundMetrics = (updates: Array<Pick<Fund, 'id' | 'ret' | 'vol' | 'updatedAt'>>) =>
   request<void>('/admin/funds/metrics', { method: 'POST', body: JSON.stringify({ updates }) });
-export const importFundsCsv = (file: File) => {
+export const importFundsCsv = async (file: File) => {
   const data = new FormData();
   data.append('file', file);
-  return fetch(`${apiUrl}/funds/import`, { method: 'POST', body: data }).then(async (response) => {
+  const token = await getAccessToken();
+  return fetch(`${apiUrl}/funds/import`, {
+    method: 'POST',
+    body: data,
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  }).then(async (response) => {
+    if (response.status === 401) void signOut();
     if (!response.ok)
       throw new Error(
         ((await response.json().catch(() => null)) as { error?: string } | null)?.error ??

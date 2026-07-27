@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { fundInputSchema, importFundsCsv, validateFundLifecycle } from './funds.js';
 import { importMetricsCsv, validateMetricsCsv } from './quick-update.js';
 import { getTaxonomyResponse } from './taxonomy.js';
+import { requireAuthentication } from './auth.js';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
@@ -111,7 +112,7 @@ export function createApp(prisma = new PrismaClient()) {
       process.env.CORS_ORIGIN ?? 'http://localhost:5173',
     );
     response.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
-    response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    response.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
     if (request.method === 'OPTIONS') return response.status(204).end();
     next();
   });
@@ -120,6 +121,7 @@ export function createApp(prisma = new PrismaClient()) {
     await prisma.$queryRaw`SELECT 1`;
     response.json({ status: 'ok' });
   });
+  app.use(requireAuthentication);
   app.get('/fund-taxonomy', (_request, response) => response.json(getTaxonomyResponse()));
   app.get('/funds', listAllApprovedFunds(prisma));
   app.get('/funds/liquid-view-counts', getLiquidViewCounts(prisma));

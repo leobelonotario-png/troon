@@ -12,7 +12,9 @@ import {
   saveIndex,
 } from '../shared/repositories/api.repositories';
 import type { AppTab, AppViewProps } from './app.types';
+import { useAuth } from './auth';
 export function useAppModel(): AppViewProps {
+  const { signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<AppTab>('liquido');
   const [isQuickUpdateOpen, setQuickUpdateOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -67,6 +69,7 @@ export function useAppModel(): AppViewProps {
     onTabChange: setActiveTab,
     onQuickUpdateOpen: () => setQuickUpdateOpen(true),
     onQuickUpdateClose: () => setQuickUpdateOpen(false),
+    onSignOut: signOut,
     onFundsChange: (funds) => {
       const industry = funds.find((fund) => fund.origin === 'industria');
       if (industry) fundMutation.mutate(industry);

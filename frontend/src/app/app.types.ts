@@ -12,6 +12,7 @@ export interface AppViewProps {
   onTabChange(tab: AppTab): void;
   onQuickUpdateOpen(): void;
   onQuickUpdateClose(): void;
+  onSignOut(): void;
   onFundsChange(funds: Fund[]): void;
   onIndicesChange(indices: Index[]): void;
   onSaveIndex(index: Index): void;
